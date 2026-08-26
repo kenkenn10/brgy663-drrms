@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Brgy 663 Disaster Relief Resource Management System</title>
+<style>
+  * { box-sizing:border-box; }
+  body {
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:#f1f5f9;
+    color:#0f172a;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  }
+  .login-card {
+    width:100%;
+    max-width:420px;
+    background:#fff;
+    border:1px solid #e2e8f0;
+    border-radius:14px;
+    padding:32px;
+    box-shadow:0 20px 45px rgba(15,23,42,.10);
+  }
+  .brand {
+    text-align:center;
+    margin-bottom:26px;
+  }
+  .brand-icon { font-size:42px; }
+  h1 { font-size:21px; margin:10px 0 6px; }
+  .subtitle { color:#64748b; font-size:13px; line-height:1.5; }
+  .form-row { margin-bottom:16px; }
+  label {
+    display:block;
+    margin-bottom:7px;
+    font-size:13px;
+    font-weight:600;
+  }
+  input {
+    width:100%;
+    padding:12px 13px;
+    border:1px solid #cbd5e1;
+    border-radius:7px;
+    font-size:14px;
+  }
+  input:focus {
+    outline:2px solid #3b82f6;
+    outline-offset:1px;
+    border-color:#3b82f6;
+  }
+  button {
+    width:100%;
+    padding:12px;
+    border:0;
+    border-radius:7px;
+    background:#3b82f6;
+    color:#fff;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  button:hover { background:#2563eb; }
+  .error {
+    display:none;
+    margin-bottom:15px;
+    padding:10px 12px;
+    border-radius:7px;
+    background:#fee2e2;
+    color:#b91c1c;
+    font-size:13px;
+  }
+  .demo {
+    margin-top:18px;
+    padding:12px;
+    border-radius:8px;
+    background:#f8fafc;
+    color:#64748b;
+    font-size:12px;
+    line-height:1.6;
+  }
+  .demo strong { color:#334155; }
+</style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-icon">📦</div>
+      <h1>Disaster Relief Resource Management System</h1>
+      <div class="subtitle">Brgy 663 — Please sign in to continue.</div>
+    </div>
+
+    <div id="error" class="error"></div>
+
+    <form id="login-form">
+      <div class="form-row">
+        <label for="username">Username</label>
+        <input id="username" type="text" autocomplete="username" required autofocus>
+      </div>
+
+      <div class="form-row">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+      </div>
+
+      <button type="submit">Log In</button>
+    </form>
+
+    <div class="demo">
+      <strong>Demo accounts</strong><br>
+      Administrator: <strong>admin</strong> / <strong>demo-admin</strong><br>
+      Relief Officer: <strong>relief</strong> / <strong>demo-relief</strong><br>
+      Inventory Officer: <strong>inventory</strong> / <strong>demo-inventory</strong>
+    </div>
+  </div>
+
+<script>
+const STORAGE_KEYS = {
+  state: 'brgy663_drrms_state_v2',
+  session: 'brgy663_drrms_session_v2'
+};
+
+function hashPassword(password){
+  if(!password) return Promise.resolve('');
+  const data = new TextEncoder().encode(password);
+  return crypto.subtle.digest('SHA-256', data).then(digest =>
+    Array.from(new Uint8Array(digest))
+      .map(b => b.toString(16).padStart(2,'0'))
+      .join('')
+  );
+}
+
+async function verifyPassword(user, password){
+  if(!user || !password) return false;
+
+  // Allows the original demo accounts to continue working.
+  if(user.passwordHash && user.passwordHash === password) return true;
+
+  const hashed = await hashPassword(password);
+  return user.passwordHash === hashed;
+}
+
+function getUsers(){
+  const defaultUsers = [
+    {
+      id:'USR-001',
+      name:'Barangay 663 Admin',
+      username:'admin',
+      role:'Administrator',
+      status:'Active',
+      lastLogin:null,
+      passwordHash:'demo-admin'
+    },
+    {
+      id:'USR-002',
+      name:'Relief Officer',
+      username:'relief',
+      role:'Relief Officer',
+      status:'Active',
+      lastLogin:null,
+      passwordHash:'demo-relief'
+    },
+    {
+      id:'USR-003',
+      name:'Inventory Officer',
+      username:'inventory',
+      role:'Inventory Officer',
+      status:'Active',
+      lastLogin:null,
+      passwordHash:'demo-inventory'
+    }
+  ];
+
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.state);
+    if(!raw) return defaultUsers;
+
+    const state = JSON.parse(raw);
+    if(!Array.isArray(state.users) || state.users.length === 0) {
+      return defaultUsers;
+    }
+
+    return state.users;
+  } catch(err) {
+    return defaultUsers;
+  }
+}
+
+const form = document.getElementById('login-form');
+const errorBox = document.getElementById('error');
+
+form.addEventListener('submit', async function(e){
+  e.preventDefault();
+
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+
+  const users = getUsers();
+  const user = users.find(u =>
+    String(u.username || '').toLowerCase() === username.toLowerCase()
+  );
+
+  if(!user){
+    errorBox.textContent = 'Invalid username or password.';
+    errorBox.style.display = 'block';
+    return;
+  }
+
+  if(user.status !== 'Active'){
+    errorBox.textContent = 'This account is inactive. Please contact an administrator.';
+    errorBox.style.display = 'block';
+    return;
+  }
+
+  if(!(await verifyPassword(user, password))){
+    errorBox.textContent = 'Invalid username or password.';
+    errorBox.style.display = 'block';
+    return;
+  }
+
+  // Migrate the original demo password to SHA-256 after a successful login.
+  user.passwordHash = await hashPassword(password);
+  user.lastLogin = new Date().toISOString();
+
+  const existingState = JSON.parse(localStorage.getItem(STORAGE_KEYS.state) || '{}');
+
+  // Preserve the existing application data. If this is the first login,
+  // keep the users and session information needed by the dashboard.
+  existingState.users = users;
+  existingState.currentUserId = user.id;
+  localStorage.setItem(STORAGE_KEYS.state, JSON.stringify(existingState));
+
+  localStorage.setItem(STORAGE_KEYS.session, user.id);
+  window.location.replace('index.html');
+});
+</script>
+</body>
+</html>
