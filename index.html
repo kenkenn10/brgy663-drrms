@@ -260,6 +260,12 @@
     font-size: 1rem;
     z-index: 9999;
   }
+  .logo {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  margin-bottom: 10px;
+}
 
 </style>
 </head>
@@ -268,7 +274,12 @@
   <div id="sidebar-backdrop" onclick="closeSidebar()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:40;"></div>
 
   <aside id="sidebar">
-    <div class="brand"><div class="brand-icon">📦</div><div>DISASTER RELIEF<br><span style="font-size:0.65rem; font-weight:400;">RESOURCE MANAGEMENT SYSTEM</span></div></div>
+    <div class="brand">
+  <img src="logo.png" alt="Brgy 663 Logo" class="logo">
+
+  <h1>Disaster Relief Resource Management System</h1>
+  <div class="subtitle">Brgy 663 — Please sign in to continue.</div>
+</div>
     <nav style="margin-top:1rem;">
       <button class="active" data-tab="dashboard" onclick="switchTab('dashboard', this)"><span>🏠</span> Dashboard</button>
     </nav>
