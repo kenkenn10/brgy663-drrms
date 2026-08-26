@@ -29,6 +29,13 @@
     padding:32px;
     box-shadow:0 20px 45px rgba(15,23,42,.10);
   }
+ body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.30);
+    z-index: 0;
+}
   .brand {
     text-align:center;
     margin-bottom:26px;
