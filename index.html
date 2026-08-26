@@ -1,0 +1,2187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brgy 663 Disaster Relief Resource Management System</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --sidebar-width: 250px;
+    --sidebar-bg: #1e293b;
+    --sidebar-hover: #334155;
+    --blue-accent: #3b82f6;
+    --blue-accent-dark: #2563eb;
+    --bg-light: #f1f5f9;
+    --card-bg: #ffffff;
+    --text-dark: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --red: #ef4444;
+    --red-bg: #fee2e2;
+    --green: #16a34a;
+
+    --badge-pending-bg: #fef3c7;
+    --badge-pending-text: #d97706;
+    --badge-approved-bg: #dcfce7;
+    --badge-approved-text: #15803d;
+    --badge-completed-bg: #dbeafe;
+    --badge-completed-text: #1d4ed8;
+    --badge-low-bg: #fee2e2;
+    --badge-low-text: #dc2626;
+    --badge-ok-bg: #dcfce7;
+    --badge-ok-text: #15803d;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  body { background-color: var(--bg-light); color: var(--text-dark); display: flex; height: 100vh; overflow: hidden; }
+  button { font-family: inherit; }
+
+  /* Sidebar */
+  aside { width: var(--sidebar-width); background-color: var(--sidebar-bg); color: #f8fafc; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; transition: transform 0.25s ease; }
+  aside .brand { padding: 1.25rem 1.5rem; font-size: 1rem; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 12px; line-height: 1.2; }
+  aside .brand-logo { width: 52px; height: 52px; object-fit: contain; flex: 0 0 52px; border-radius: 8px; background: rgba(255,255,255,0.95); padding: 3px; }
+  aside .brand-icon { font-size: 1.5rem; }
+  aside .nav-group { margin-top: 1rem; }
+  aside .nav-header { padding: 0.75rem 1.5rem; font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; }
+  aside nav button { width: 100%; padding: 0.75rem 1.5rem; background: none; border: none; color: #cbd5e1; text-align: left; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s; position: relative; }
+  aside nav button:hover { background-color: var(--sidebar-hover); color: #fff; }
+  aside nav button.active { background-color: var(--blue-accent); color: #fff; }
+  aside nav button .count { margin-left: auto; background: rgba(255,255,255,0.15); padding: 1px 8px; border-radius: 999px; font-size: 0.7rem; }
+  aside nav button.active .count { background: rgba(255,255,255,0.3); }
+.sidebar-logout {
+  margin-top: auto;
+  padding: 15px 0;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar-logout button {
+  width: 100%;
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar-logout button:hover {
+  background: #7f1d1d;
+  color: white;
+}
+
+  /* Main */
+  main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; min-width: 0; }
+  header { background-color: var(--card-bg); padding: 1rem 2rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 5; }
+  header h2 { font-size: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+  #menu-toggle { display: none; background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-dark); }
+  header .subtitle { font-size: 0.85rem; color: var(--blue-accent); font-weight: 500; margin-top: 4px; }
+  header .user-meta { display: flex; align-items: center; gap: 20px; font-size: 0.9rem; color: var(--text-dark); white-space: nowrap; }
+
+  .content-area { padding: 1.5rem 2rem; flex: 1; }
+  .tab-content { display: none; animation: fadeIn 0.2s ease; }
+  .tab-content.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
+
+  /* Metrics */
+  .metrics-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .metric-card { background: var(--card-bg); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color); display: flex; gap: 15px; align-items: center; }
+  .metric-icon { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+  .metric-info h4 { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.25rem; font-weight: 700; }
+  .metric-info .value { font-size: 1.5rem; font-weight: 700; color: var(--text-dark); margin-bottom: 0.25rem; }
+  .metric-info p { font-size: 0.7rem; color: var(--text-muted); }
+
+  .charts-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  .card { background: var(--card-bg); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); }
+  .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
+  .card-header h3 { font-size: 1.05rem; font-weight: 600; color: var(--text-dark); }
+  .chart-container { position: relative; height: 250px; width: 100%; }
+
+  .tables-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  table { width: 100%; border-collapse: collapse; text-align: left; }
+  table th { padding: 0.75rem 1rem; font-size: 0.8rem; font-weight: 600; color: var(--text-dark); border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+  table td { padding: 0.85rem 1rem; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+  table tbody tr:hover { background: #f8fafc; }
+  .table-wrap { overflow-x: auto; }
+
+  .badge { padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+  .badge-Pending { background-color: var(--badge-pending-bg); color: var(--badge-pending-text); }
+  .badge-Approved { background-color: var(--badge-approved-bg); color: var(--badge-approved-text); }
+  .badge-Completed { background-color: var(--badge-completed-bg); color: var(--badge-completed-text); }
+  .badge-low { background-color: var(--badge-low-bg); color: var(--badge-low-text); }
+  .badge-ok { background-color: var(--badge-ok-bg); color: var(--badge-ok-text); }
+
+  .status-select { padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; font-weight: 600; cursor: pointer; background: #fff; }
+
+  .btn-outline { display: inline-block; margin-top: 1rem; padding: 0.5rem 1rem; border: 1px solid var(--border-color); background: transparent; color: var(--blue-accent); border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+  .btn-outline:hover { background: #eff6ff; }
+  .btn-primary { padding: 0.55rem 1rem; border: none; background: var(--blue-accent); color: #fff; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-primary:hover { background: var(--blue-accent-dark); }
+  .btn-danger { padding: 0.5rem 0.9rem; border: none; background: var(--red); color: #fff; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+  .btn-danger:hover { background: #dc2626; }
+  .btn-ghost { padding: 0.5rem 0.9rem; border: 1px solid var(--border-color); background: #fff; color: var(--text-dark); border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+  .icon-btn { background: none; border: none; cursor: pointer; font-size: 0.95rem; padding: 4px 6px; border-radius: 5px; color: var(--text-muted); }
+  .icon-btn:hover { background: #e2e8f0; color: var(--text-dark); }
+  .icon-btn.danger:hover { background: var(--red-bg); color: var(--red); }
+
+  .search-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .search-bar input[type="text"], .search-bar select { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; }
+  .search-bar input[type="text"] { min-width: 200px; }
+
+  .empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); }
+  .empty-state .emoji { font-size: 2rem; margin-bottom: 0.5rem; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
+  .modal-overlay.hidden { display: none; }
+  .modal { background: #fff; border-radius: 10px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: modalIn 0.15s ease; }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); }
+  .modal-header h3 { font-size: 1.1rem; }
+  .modal-header button { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-muted); }
+  .modal-body { padding: 1.25rem 1.5rem; }
+  .form-row { margin-bottom: 1rem; }
+  .form-row label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-dark); margin-bottom: 6px; }
+  .form-row input, .form-row select, .form-row textarea { width: 100%; padding: 0.6rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.88rem; background: #fff; }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus { outline: 2px solid var(--blue-accent); outline-offset: 1px; border-color: var(--blue-accent); }
+  .form-row small { display: block; color: var(--text-muted); font-size: 0.75rem; margin-top: 4px; }
+  .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.5rem; }
+
+  /* Toasts */
+  #toast-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 200; }
+  .toast { background: #0f172a; color: #fff; padding: 0.75rem 1.1rem; border-radius: 8px; font-size: 0.85rem; box-shadow: 0 10px 20px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 8px; min-width: 220px; animation: toastIn 0.2s ease; }
+  .toast.success { border-left: 4px solid #22c55e; }
+  .toast.error { border-left: 4px solid var(--red); }
+  .toast.info { border-left: 4px solid var(--blue-accent); }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(20px);} to { opacity: 1; transform: translateX(0);} }
+  .toast.fade-out { animation: toastOut 0.25s ease forwards; }
+  @keyframes toastOut { to { opacity: 0; transform: translateX(20px); } }
+
+  .stat-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .stat-box { background: #fff; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem 1.25rem; }
+  .stat-box h4 { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.4rem; }
+  .stat-box .v { font-size: 1.4rem; font-weight: 700; }
+
+  .doc-section { margin-bottom: 2rem; }
+  .doc-section h3 { color: var(--blue-accent); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); }
+  .doc-section h4 { margin: 1rem 0 0.5rem; color: var(--text-dark); }
+  .doc-section p, .doc-section li { font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 0.5rem; }
+  .doc-section ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+  .doc-table { width: 100%; margin-top: 1rem; border: 1px solid var(--border-color); }
+  .doc-table th, .doc-table td { border: 1px solid var(--border-color); padding: 0.75rem; }
+
+  .log-item { display: flex; gap: 12px; padding: 0.85rem 0; border-bottom: 1px solid var(--border-color); }
+  .log-item:last-child { border-bottom: none; }
+  .log-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue-accent); margin-top: 6px; flex-shrink: 0; }
+  .log-item .log-text { font-size: 0.85rem; color: var(--text-dark); }
+  .log-item .log-time { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+
+  .barangay-card { border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+  .barangay-card .info h4 { font-size: 0.95rem; margin-bottom: 4px; }
+  .barangay-card .info p { font-size: 0.78rem; color: var(--text-muted); }
+
+
+  .settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+  .settings-panel { border:1px solid var(--border-color); border-radius:10px; padding:1.25rem; background:var(--card-bg); }
+  .settings-panel > h3 { font-size:1rem; margin-bottom:1rem; }
+  .switch-row { display:flex !important; align-items:center; gap:10px; cursor:pointer; font-weight:500 !important; }
+  .switch-row input { width:auto !important; }
+  .badge-Active { background:#dcfce7; color:#15803d; }
+  .badge-Inactive { background:#e2e8f0; color:#475569; }
+  body.dark {
+    --bg-light:#0f172a; --card-bg:#1e293b; --text-dark:#f8fafc;
+    --text-muted:#94a3b8; --border-color:#334155;
+  }
+  body.dark table tbody tr:hover { background:#243247; }
+  body.dark .btn-ghost, body.dark .status-select,
+  body.dark .form-row input, body.dark .form-row select,
+  body.dark .form-row textarea, body.dark .search-bar input[type="text"],
+  body.dark .search-bar select { background:#0f172a; color:#f8fafc; border-color:#475569; }
+  body.dark header { background:#1e293b; }
+  body.compact table td { padding:.55rem .75rem; }
+  body.compact table th { padding:.55rem .75rem; }
+  @media (max-width: 780px) {
+    .settings-grid { grid-template-columns:1fr; }
+  }
+
+
+  .report-kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.25rem; }
+  .report-kpi { background:var(--bg-light); border:1px solid var(--border-color); border-radius:8px; padding:1rem; }
+  .report-kpi h4 { font-size:.7rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:.35rem; }
+  .report-kpi .value { font-size:1.35rem; font-weight:700; color:var(--text-dark); }
+  .report-preview { border:1px solid var(--border-color); border-radius:8px; padding:1.25rem; overflow:auto; background:var(--card-bg); }
+  .report-preview .report-title { font-size:1.25rem; font-weight:700; color:var(--text-dark); }
+  .report-preview .report-meta { color:var(--text-muted); font-size:.8rem; margin:.3rem 0 1rem; }
+  .report-section-title { margin:1.25rem 0 .65rem; font-size:.95rem; color:var(--text-dark); }
+  .report-table { min-width:650px; }
+  .report-empty { padding:2rem; text-align:center; color:var(--text-muted); }
+  .report-history-actions { display:flex; gap:5px; flex-wrap:wrap; }
+  @media (max-width:1100px) { .report-kpis { grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:600px) { .report-kpis { grid-template-columns:1fr; } }
+  @media print {
+    body { display:block !important; background:#fff !important; color:#000 !important; }
+    aside, header, .no-print, #report-kpis, .form-actions { display:none !important; }
+    main { overflow:visible !important; }
+    .content-area { padding:0 !important; }
+    .tab-content { display:none !important; }
+    #reports { display:block !important; }
+    #reports > .card { border:none !important; box-shadow:none !important; }
+    .report-preview { border:none !important; padding:0 !important; overflow:visible !important; }
+    .report-preview table { min-width:0 !important; width:100% !important; }
+  }
+
+  @media (max-width: 1100px) {
+    .metrics-grid { grid-template-columns: repeat(3,1fr); }
+    .charts-grid, .tables-grid, .stat-row { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 780px) {
+    #menu-toggle { display: inline-block; }
+    aside { position: fixed; top: 0; bottom: 0; left: 0; z-index: 50; transform: translateX(-100%); }
+    aside.open { transform: translateX(0); box-shadow: 10px 0 30px rgba(0,0,0,0.3); }
+    .metrics-grid { grid-template-columns: repeat(2,1fr); }
+    header { padding: 1rem; }
+    .content-area { padding: 1rem; }
+    header .user-meta span:first-child { display: none; }
+  }
+
+  /* ================= LOGIN GUARD ================= */
+  body.auth-locked > * { display: none !important; }
+  body.auth-locked::before {
+    content: "Checking login…";
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: #f1f5f9;
+    color: #0f172a;
+    font-size: 1rem;
+    z-index: 9999;
+  }
+
+</style>
+</head>
+<body class="auth-locked">
+
+  <div id="sidebar-backdrop" onclick="closeSidebar()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:40;"></div>
+
+  <aside id="sidebar">
+    <div class="brand"><img src="logo.png" alt="Brgy 663 Logo" class="brand-logo"><div>DISASTER RELIEF<br><span style="font-size:0.65rem; font-weight:400;">RESOURCE MANAGEMENT SYSTEM</span></div></div>
+    <nav style="margin-top:1rem;">
+      <button class="active" data-tab="dashboard" onclick="switchTab('dashboard', this)"><span>🏠</span> Dashboard</button>
+    </nav>
+    <div class="nav-group">
+      <div class="nav-header">Management</div>
+      <nav>
+        <button data-tab="inventory" onclick="switchTab('inventory', this)"><span>📦</span> Inventory <span class="count" id="nav-count-inventory">0</span></button>
+        <button data-tab="requests" onclick="switchTab('requests', this)"><span>📄</span> Relief Requests <span class="count" id="nav-count-requests">0</span></button>
+        <button data-tab="recipients" onclick="switchTab('recipients', this)"><span>👥</span> Recipients <span class="count" id="nav-count-recipients">0</span></button>
+        <button data-tab="distribution" onclick="switchTab('distribution', this)"><span>🚚</span> Distribution <span class="count" id="nav-count-distribution">0</span></button>
+        <button data-tab="donations" onclick="switchTab('donations', this)"><span>🎁</span> Donations <span class="count" id="nav-count-donations">0</span></button>
+      </nav>
+    </div>
+    <div class="nav-group">
+      <div class="nav-header">Cluster Coordination</div>
+      <nav>
+        <button data-tab="barangays" onclick="switchTab('barangays', this)"><span>🏛️</span> Barangays <span class="count" id="nav-count-barangays">0</span></button>
+        <button data-tab="overview" onclick="switchTab('overview', this)"><span>🔗</span> Cluster Overview</button>
+      </nav>
+    </div>
+    <div class="nav-group">
+  <div class="nav-header">REPORTS</div>
+  <nav>
+    <button data-tab="reports" onclick="switchTab('reports', this)">
+      <span>📊</span> Reports
+    </button>
+    <button data-tab="report-history" onclick="switchTab('report-history', this)">
+      <span>🗂️</span> Report History <span class="count" id="nav-count-report-history">0</span>
+    </button>
+  </nav>
+</div>
+
+<div class="nav-group">
+  <div class="nav-header">SYSTEM</div>
+  <nav>
+    <button data-tab="users" onclick="switchTab('users', this)">
+      <span>👤</span> Users <span class="count" id="nav-count-users">0</span>
+    </button>
+    <button data-tab="settings" onclick="switchTab('settings', this)">
+      <span>⚙️</span> Settings
+    </button>
+  </nav>
+</div>
+
+<!-- LOGOUT BUTTON -->
+<div class="sidebar-logout">
+  <button onclick="logout()">
+    <span>🚪</span>
+    <span>Logout</span>
+  </button>
+</div>
+
+</aside>
+  <main>
+    <header>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button id="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <div>
+          <h2 id="header-title">Dashboard</h2>
+          <div class="subtitle" id="header-subtitle">Welcome, Barangay 663 Admin!</div>
+        </div>
+      </div>
+      <div class="user-meta">
+        <span id="header-date">📅 —</span>
+        <span style="font-weight:600;">👤 Admin ▼</span>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- DASHBOARD -->
+      <section id="dashboard" class="tab-content active">
+        <div class="metrics-grid" id="metrics-grid"></div>
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-header"><h3>Inventory Summary</h3></div>
+            <div class="chart-container"><canvas id="pieChart"></canvas></div>
+            <div style="text-align:center; font-weight:600; margin-top:10px; font-size:0.9rem;" id="pie-total">Total Items: 0</div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3>Relief Requests Overview (last 7 days)</h3>
+            </div>
+            <div class="chart-container"><canvas id="lineChart"></canvas></div>
+          </div>
+        </div>
+        <div class="tables-grid">
+          <div class="card">
+            <div class="card-header"><h3>Recent Relief Requests</h3></div>
+            <div class="table-wrap"><table><thead><tr><th>Request ID</th><th>Name</th><th>Address</th><th>Type</th><th>Status</th><th>Date</th></tr></thead><tbody id="dash-requests-tbody"></tbody></table></div>
+            <button class="btn-outline" onclick="switchTabById('requests')">View All Requests</button>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Recent Distributions</h3></div>
+            <div class="table-wrap"><table><thead><tr><th>Dist. ID</th><th>Recipient</th><th>Item</th><th>Qty</th><th>Date</th></tr></thead><tbody id="dash-distributions-tbody"></tbody></table></div>
+            <button class="btn-outline" onclick="switchTabById('distribution')">View All Distributions</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- INVENTORY -->
+      <section id="inventory" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <h3>Inventory Management</h3>
+            <div class="search-bar">
+              <input type="text" id="inventory-search" placeholder="Search item name..." oninput="renderInventory()">
+              <select id="inventory-filter" onchange="renderInventory()">
+                <option value="">All Categories</option>
+                <option>Food</option><option>Water</option><option>Hygiene Kit</option><option>Clothing</option><option>Medical</option><option>Others</option>
+              </select>
+              <button class="btn-primary" onclick="openInventoryModal()">＋ Add Item</button>
+            </div>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Item</th><th>Category</th><th>Quantity</th><th>Unit</th><th>Stock Status</th><th>Actions</th></tr></thead>
+            <tbody id="inventory-tbody"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- REQUESTS -->
+      <section id="requests" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <h3>Relief Request Management</h3>
+            <div class="search-bar">
+              <input type="text" id="requests-search" placeholder="Search name or ID..." oninput="renderRequests()">
+              <select id="requests-filter" onchange="renderRequests()">
+                <option value="">All Status</option><option>Pending</option><option>Approved</option><option>Completed</option>
+              </select>
+              <button class="btn-primary" onclick="openRequestModal()">＋ New Request</button>
+            </div>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Request ID</th><th>Name</th><th>Address</th><th>Type</th><th>Qty</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="requests-tbody"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- RECIPIENTS -->
+      <section id="recipients" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <h3>Recipient Management</h3>
+            <div class="search-bar">
+              <input type="text" id="recipients-search" placeholder="Search name or address..." oninput="renderRecipients()">
+              <button class="btn-primary" onclick="openRecipientModal()">＋ Add Recipient</button>
+            </div>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Household Head</th><th>Address</th><th>Members</th><th>Contact No.</th><th>Actions</th></tr></thead>
+            <tbody id="recipients-tbody"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- DISTRIBUTION -->
+      <section id="distribution" class="tab-content">
+        <div class="stat-row" id="distribution-stats"></div>
+        <div class="card">
+          <div class="card-header">
+            <h3>Distribution Monitoring</h3>
+            <div class="search-bar">
+              <input type="text" id="distribution-search" placeholder="Search recipient or item..." oninput="renderDistributions()">
+              <button class="btn-primary" onclick="openDistributionModal()">＋ Log Distribution</button>
+            </div>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Dist. ID</th><th>Recipient</th><th>Item</th><th>Qty</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="distribution-tbody"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- DONATIONS -->
+      <section id="donations" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <h3>Donations</h3>
+            <div class="search-bar">
+              <input type="text" id="donations-search" placeholder="Search donor or item..." oninput="renderDonations()">
+              <button class="btn-primary" onclick="openDonationModal()">＋ Log Donation</button>
+            </div>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Donation ID</th><th>Donor</th><th>Item</th><th>Qty</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="donations-tbody"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <!-- BARANGAYS -->
+      <section id="barangays" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <h3>Barangays Coordination</h3>
+            <button class="btn-primary" onclick="openBarangayModal()">＋ Add Barangay</button>
+          </div>
+          <div id="barangays-list"></div>
+        </div>
+      </section>
+
+      <!-- CLUSTER OVERVIEW -->
+      <section id="overview" class="tab-content">
+        <div class="card">
+          <h3 style="margin-bottom:1rem;">Cluster Overview</h3>
+          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">Aggregated snapshot shared across the coordinating cluster of barangays.</p>
+          <div class="stat-row" id="overview-stats"></div>
+          <div class="card" style="border:1px dashed var(--border-color);">
+            <div class="card-header"><h3>Barangays in this Cluster</h3></div>
+            <div id="overview-barangay-summary" style="font-size:0.85rem; color:var(--text-muted);"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- REPORTS -->
+      <section id="reports" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Reports</h3>
+              <p style="color:var(--text-muted);font-size:.82rem;margin-top:4px;">
+                Generate printable and downloadable reports from the current system data.
+              </p>
+            </div>
+            <div class="search-bar">
+              <select id="report-type" onchange="renderReportPreview()">
+                <option value="summary">Executive Summary</option>
+                <option value="inventory">Inventory Report</option>
+                <option value="requests">Relief Requests Report</option>
+                <option value="distribution">Distribution Report</option>
+                <option value="donations">Donations Report</option>
+                <option value="recipients">Recipients Report</option>
+                <option value="barangays">Barangay / Cluster Report</option>
+                <option value="activity">Activity Report</option>
+              </select>
+              <select id="report-period" onchange="renderReportPreview()">
+                <option value="all">All Records</option>
+                <option value="today">Today</option>
+                <option value="7">Last 7 Days</option>
+                <option value="30">Last 30 Days</option>
+                <option value="90">Last 90 Days</option>
+              </select>
+              <button class="btn-primary" onclick="generateReport()">Generate & Save Report</button>
+            </div>
+          </div>
+
+          <div class="report-kpis" id="report-kpis"></div>
+
+          <div class="report-preview" id="report-preview"></div>
+
+          <div class="form-actions" style="margin-top:1rem;">
+            <button class="btn-ghost" onclick="printCurrentReport()">🖨️ Print Report</button>
+            <button class="btn-ghost" onclick="downloadCurrentReportCSV()">⬇️ Download CSV</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- REPORT HISTORY -->
+      <section id="report-history" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Report History</h3>
+              <p style="color:var(--text-muted);font-size:.82rem;margin-top:4px;">
+                Previously generated reports are saved locally so you can reopen, print or download them.
+              </p>
+            </div>
+            <div class="search-bar">
+              <input type="text" id="report-history-search" placeholder="Search reports..." oninput="renderReportHistory()">
+              <button class="btn-ghost" onclick="clearReportHistory()">Clear History</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Report ID</th>
+                  <th>Report</th>
+                  <th>Period</th>
+                  <th>Generated By</th>
+                  <th>Date / Time</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="report-history-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:1.5rem;">
+          <div class="card-header"><h3>Selected Report</h3></div>
+          <div id="saved-report-preview">
+            <div class="empty-state"><div class="emoji">🗂️</div>Select a saved report to view it.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- USERS -->
+      <section id="users" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>User Management</h3>
+              <p style="color:var(--text-muted);font-size:.82rem;margin-top:4px;">
+                Create and manage local system accounts and their access roles.
+              </p>
+            </div>
+            <div class="search-bar">
+              <input type="text" id="users-search" placeholder="Search name, username or role..." oninput="renderUsers()">
+              <select id="users-role-filter" onchange="renderUsers()">
+                <option value="">All Roles</option>
+                <option value="Administrator">Administrator</option>
+                <option value="Relief Officer">Relief Officer</option>
+                <option value="Inventory Officer">Inventory Officer</option>
+                <option value="Viewer">Viewer</option>
+              </select>
+              <button class="btn-primary" onclick="openUserModal()">＋ Add User</button>
+            </div>
+          </div>
+
+          <div class="stat-row" id="user-stats"></div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>User</th><th>Username</th><th>Role</th><th>Status</th>
+                  <th>Last Login</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:1.5rem;">
+          <div class="card-header"><h3>Role Permissions</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Role</th><th>Access</th><th>Typical Use</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Administrator</strong></td><td>Full system access</td><td>Manage users, settings and all relief operations</td></tr>
+                <tr><td><strong>Relief Officer</strong></td><td>Requests, recipients, distributions, donations</td><td>Process relief operations</td></tr>
+                <tr><td><strong>Inventory Officer</strong></td><td>Inventory and donations</td><td>Maintain stock records</td></tr>
+                <tr><td><strong>Viewer</strong></td><td>Dashboard and reports</td><td>Read-only monitoring</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="settings" class="tab-content">
+        <div class="card" style="max-width:1000px;margin:0 auto;">
+          <div class="card-header">
+            <div>
+              <h3>System Settings</h3>
+              <p style="color:var(--text-muted);font-size:.82rem;margin-top:4px;">
+                Configure the dashboard appearance, profile and local data.
+              </p>
+            </div>
+          </div>
+
+          <div class="settings-grid">
+            <div class="settings-panel">
+              <h3>🏛️ System Information</h3>
+              <form id="system-settings-form">
+                <div class="form-row">
+                  <label>System Name</label>
+                  <input id="setting-system-name" required type="text">
+                </div>
+                <div class="form-row">
+                  <label>Barangay / Office</label>
+                  <input id="setting-office" required type="text">
+                </div>
+                <div class="form-row">
+                  <label>Cluster / District</label>
+                  <input id="setting-cluster" type="text">
+                </div>
+                <div class="form-row">
+                  <label>Dashboard Theme</label>
+                  <select id="setting-theme">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="system">Follow device</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <label>Compact Tables</label>
+                  <label class="switch-row">
+                    <input id="setting-compact" type="checkbox">
+                    <span>Use smaller table rows</span>
+                  </label>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn-primary">Save System Settings</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="settings-panel">
+              <h3>👤 My Profile</h3>
+              <form id="profile-settings-form">
+                <div class="form-row">
+                  <label>Full Name</label>
+                  <input id="setting-profile-name" required type="text">
+                </div>
+                <div class="form-row">
+                  <label>Username</label>
+                  <input id="setting-profile-username" disabled type="text">
+                </div>
+                <div class="form-row">
+                  <label>Role</label>
+                  <input id="setting-profile-role" disabled type="text">
+                </div>
+                <div class="form-row">
+                  <label>New Password</label>
+                  <input id="setting-profile-password" type="password" minlength="6" placeholder="Leave blank to keep current password">
+                  <small>For this browser-only version, accounts are stored locally. Do not use a real production password here.</small>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn-primary">Save Profile</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="settings-panel" style="margin-top:1.5rem;">
+            <div class="card-header" style="margin-bottom:.5rem;">
+              <h3>💾 Local Data</h3>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn-ghost" onclick="exportSystemData()">Export JSON Backup</button>
+                <button class="btn-ghost" onclick="importSystemData()">Import JSON Backup</button>
+                <button class="btn-danger" onclick="resetSystemData()">Reset Demo Data</button>
+              </div>
+            </div>
+            <p style="font-size:.82rem;color:var(--text-muted);">
+              Your changes are saved in this browser using localStorage. Export a backup before clearing browser data or moving to another computer.
+            </p>
+          </div>
+
+          <div class="settings-panel" style="margin-top:1.5rem;">
+            <div class="card-header">
+              <h3>🕒 Activity Log</h3>
+              <button class="btn-ghost" onclick="clearHistory()">Clear Log</button>
+            </div>
+            <div id="history-list"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div class="modal-overlay hidden" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header"><h3 id="modal-title">Title</h3><button onclick="closeModal()">✕</button></div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+<script>
+/* ---------------- STATE ---------------- */
+let seq = 1000;
+function nextSeq(){ return seq++; }
+function pad(n){ return String(n).padStart(3,'0'); }
+
+const today = new Date();
+function daysAgo(n){ const d = new Date(today); d.setDate(d.getDate()-n); return d; }
+function fmtDate(d){ return d.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }); }
+function fmtDateShort(d){ return d.toLocaleDateString('en-US', { month:'short', day:'numeric' }); }
+function fmtTime(d){ return d.toLocaleString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }); }
+
+const state = {
+  inventory: [
+    { id:'INV-'+pad(1), name:'Rice (25kg sack)', category:'Food', quantity:220, unit:'sacks', low:30 },
+    { id:'INV-'+pad(2), name:'Canned Goods', category:'Food', quantity:340, unit:'cans', low:50 },
+    { id:'INV-'+pad(3), name:'Bottled Water (500ml)', category:'Water', quantity:210, unit:'bottles', low:60 },
+    { id:'INV-'+pad(4), name:'Hygiene Kit', category:'Hygiene Kit', quantity:95, unit:'kits', low:40 },
+    { id:'INV-'+pad(5), name:'Used Clothing Bundle', category:'Clothing', quantity:60, unit:'bundles', low:20 },
+    { id:'INV-'+pad(6), name:'First Aid Kit', category:'Medical', quantity:18, unit:'kits', low:15 },
+    { id:'INV-'+pad(7), name:'Blankets', category:'Others', quantity:302, unit:'pcs', low:50 }
+  ],
+  requests: [
+    { id:'REQ-'+pad(51), name:'Juan Dela Cruz', address:'Brgy. 663, Ermita', type:'Food Pack', qty:2, status:'Pending', date:today },
+    { id:'REQ-'+pad(50), name:'Maria Santos', address:'Brgy. 663-A, Ermita', type:'Hygiene Kit', qty:1, status:'Approved', date:daysAgo(0) },
+    { id:'REQ-'+pad(49), name:'Pedro Reyes', address:'Brgy. 659, Ermita', type:'Food Pack', qty:3, status:'Pending', date:daysAgo(1) },
+    { id:'REQ-'+pad(48), name:'Ana Garcia', address:'Brgy. 660, Ermita', type:'Drinking Water', qty:6, status:'Completed', date:daysAgo(1) },
+    { id:'REQ-'+pad(47), name:'Luis Mendoza', address:'Brgy. 661, Ermita', type:'Food Pack', qty:2, status:'Approved', date:daysAgo(2) },
+    { id:'REQ-'+pad(46), name:'Carmela Uy', address:'Brgy. 662, Ermita', type:'Clothing', qty:1, status:'Pending', date:daysAgo(3) },
+    { id:'REQ-'+pad(45), name:'Ramon Bautista', address:'Brgy. 663, Ermita', type:'First Aid Kit', qty:1, status:'Completed', date:daysAgo(4) }
+  ],
+  recipients: [
+    { id:'RCP-'+pad(1), name:'Juan Dela Cruz', address:'Brgy. 663, Ermita', members:4, contact:'0917-000-0001' },
+    { id:'RCP-'+pad(2), name:'Maria Santos', address:'Brgy. 663-A, Ermita', members:3, contact:'0917-000-0002' },
+    { id:'RCP-'+pad(3), name:'Pedro Reyes', address:'Brgy. 659, Ermita', members:5, contact:'0917-000-0003' },
+    { id:'RCP-'+pad(4), name:'Ana Garcia', address:'Brgy. 660, Ermita', members:2, contact:'0917-000-0004' }
+  ],
+  distributions: [
+    { id:'DIST-'+pad(78), recipient:'Juan Dela Cruz', item:'Rice (25kg sack)', qty:2, date:today },
+    { id:'DIST-'+pad(77), recipient:'Maria Santos', item:'Hygiene Kit', qty:1, date:daysAgo(0) },
+    { id:'DIST-'+pad(76), recipient:'Pedro Reyes', item:'Bottled Water (500ml)', qty:6, date:daysAgo(1) },
+    { id:'DIST-'+pad(75), recipient:'Ana Garcia', item:'Canned Goods', qty:4, date:daysAgo(1) },
+    { id:'DIST-'+pad(74), recipient:'Luis Mendoza', item:'Hygiene Kit', qty:1, date:daysAgo(2) }
+  ],
+  donations: [
+    { id:'DON-'+pad(30), donor:'SM Foundation', item:'Canned Goods', qty:200, date:daysAgo(2) },
+    { id:'DON-'+pad(29), donor:'Local Church Group', item:'Blankets', qty:80, date:daysAgo(4) }
+  ],
+  barangays: [
+    { id:'BR-'+pad(1), name:'Barangay 663', zone:'Zone 71, District 5', contact:'Kagawad R. Villanueva', phone:'0918-111-2222' },
+    { id:'BR-'+pad(2), name:'Barangay 659', zone:'Zone 71, District 5', contact:'Kagawad L. Fernandez', phone:'0918-333-4444' },
+    { id:'BR-'+pad(3), name:'Barangay 660', zone:'Zone 71, District 5', contact:'Kagawad P. Ocampo', phone:'0918-555-6666' }
+  ],
+  history: [],
+  reportHistory: [],
+  users: [
+    { id:'USR-001', name:'Barangay 663 Admin', username:'admin', role:'Administrator', status:'Active', lastLogin:new Date(), passwordHash:'demo-admin' },
+    { id:'USR-002', name:'Relief Officer', username:'relief', role:'Relief Officer', status:'Active', lastLogin:null, passwordHash:'demo-relief' },
+    { id:'USR-003', name:'Inventory Officer', username:'inventory', role:'Inventory Officer', status:'Active', lastLogin:null, passwordHash:'demo-inventory' }
+  ],
+  settings: {
+    systemName:'Brgy 663 Disaster Relief Resource Management System',
+    office:'Barangay 663',
+    cluster:'Zone 71, District 5',
+    theme:'light',
+    compactTables:false
+  },
+  currentUserId:'USR-001'
+};
+
+/* ---------------- UTIL ---------------- */
+function toast(msg, type){
+  type = type || 'success';
+  const c = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  const icon = type==='success' ? '✅' : type==='error' ? '⚠️' : 'ℹ️';
+  el.innerHTML = '<span>'+icon+'</span><span>'+msg+'</span>';
+  c.appendChild(el);
+  setTimeout(()=>{ el.classList.add('fade-out'); setTimeout(()=>el.remove(),250); }, 2800);
+}
+
+function logActivity(text){
+  state.history.unshift({ text, time:new Date() });
+  if(state.history.length>200) state.history.pop();
+  renderHistoryBadgeOnly();
+  saveState();
+}
+
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function confirmDelete(message, onYes){
+  if(window.confirm(message)) onYes();
+}
+
+/* ---------------- SIDEBAR / NAV ---------------- */
+function switchTab(tabId, el){
+  document.querySelectorAll('.tab-content').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('aside nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  if(el) el.classList.add('active');
+  else document.querySelector('button[data-tab="'+tabId+'"]').classList.add('active');
+  const label = document.querySelector('button[data-tab="'+tabId+'"]').textContent.trim().replace(/\s+\d+$/,'');
+  document.getElementById('header-title').textContent = label;
+  document.getElementById('header-subtitle').textContent = tabId==='dashboard' ? 'Welcome, Barangay 663 Admin!' : 'Manage and monitor ' + label.toLowerCase();
+  closeSidebar();
+  renderAll();
+}
+function switchTabById(id){ switchTab(id, null); }
+function logout() {
+  const user = getCurrentUser();
+  if (!user) return;
+  if (confirm(`Log out ${user.name}?`)) {
+    localStorage.removeItem(STORAGE_KEYS.session);
+    window.location.href = "login.html";
+  }
+}
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-backdrop').style.display = document.getElementById('sidebar').classList.contains('open') ? 'block' : 'none';
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-backdrop').style.display = 'none';
+}
+
+/* ---------------- MODAL HELPERS ---------------- */
+function showModal(title, bodyHtml){
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = bodyHtml;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+function closeModal(){ document.getElementById('modal-overlay').classList.add('hidden'); }
+document.getElementById('modal-overlay').addEventListener('click', e=>{ if(e.target.id==='modal-overlay') closeModal(); });
+
+/* ================= INVENTORY ================= */
+function renderInventory(){
+  const q = (document.getElementById('inventory-search')?.value||'').toLowerCase();
+  const cat = document.getElementById('inventory-filter')?.value||'';
+  const tbody = document.getElementById('inventory-tbody');
+  let rows = state.inventory.filter(i => i.name.toLowerCase().includes(q) && (!cat || i.category===cat));
+  if(rows.length===0){
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="emoji">📦</div>No inventory items found.</div></td></tr>';
+  } else {
+    tbody.innerHTML = rows.map(i=>{
+      const low = i.quantity <= i.low;
+      return `<tr>
+        <td style="color:var(--text-dark); font-weight:500;">${esc(i.name)}</td>
+        <td>${esc(i.category)}</td>
+        <td>${i.quantity}</td>
+        <td>${esc(i.unit)}</td>
+        <td><span class="badge ${low?'badge-low':'badge-ok'}">${low?'Low Stock':'In Stock'}</span></td>
+        <td>
+          <button class="icon-btn" onclick="openInventoryModal('${i.id}')" title="Edit">✏️</button>
+          <button class="icon-btn danger" onclick="deleteInventory('${i.id}')" title="Delete">🗑️</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  document.getElementById('nav-count-inventory').textContent = state.inventory.length;
+}
+
+function openInventoryModal(id){
+  const editing = !!id;
+  const item = editing ? state.inventory.find(i=>i.id===id) : { name:'', category:'Food', quantity:0, unit:'', low:10 };
+  const html = `
+    <form id="inventory-form">
+      <div class="form-row"><label>Item Name</label><input required type="text" id="f-name" value="${esc(item.name)}" placeholder="e.g. Rice (25kg sack)"></div>
+      <div class="form-row"><label>Category</label>
+        <select id="f-category">
+          ${['Food','Water','Hygiene Kit','Clothing','Medical','Others'].map(c=>`<option ${item.category===c?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row"><label>Quantity</label><input required type="number" min="0" id="f-quantity" value="${item.quantity}"></div>
+      <div class="form-row"><label>Unit</label><input required type="text" id="f-unit" value="${esc(item.unit)}" placeholder="e.g. sacks, bottles, kits"></div>
+      <div class="form-row"><label>Low Stock Threshold</label><input required type="number" min="0" id="f-low" value="${item.low}"><small>Item is flagged "Low Stock" at or below this quantity.</small></div>
+      <div class="form-actions"><button type="button" class="btn-ghost" onclick="closeModal()">Cancel</button><button type="submit" class="btn-primary">${editing?'Save Changes':'Add Item'}</button></div>
+    </form>`;
+  showModal(editing ? 'Edit Inventory Item' : 'Add Inventory Item', html);
+  document.getElementById('inventory-form').onsubmit = function(e){
+    e.preventDefault();
+    const data = {
+      name: document.getElementById('f-name').value.trim(),
+      category: document.getElementById('f-category').value,
+      quantity: parseInt(document.getElementById('f-quantity').value)||0,
+      unit: document.getElementById('f-unit').value.trim(),
+      low: parseInt(document.getElementById('f-low').value)||0
+    };
+    if(editing){
+      Object.assign(item, data);
+      logActivity(`Updated inventory item "${esc(data.name)}"`);
+      toast('Item updated');
+    } else {
+      state.inventory.push({ id:'INV-'+pad(nextSeq()%900+1), ...data });
+      logActivity(`Added new inventory item "${esc(data.name)}"`);
+      toast('Item added');
+    }
+    closeModal(); renderAll();
+  };
+}
+function deleteInventory(id){
+  const item = state.inventory.find(i=>i.id===id);
+  confirmDelete(`Delete "${item.name}" from inventory?`, ()=>{
+    state.inventory = state.inventory.filter(i=>i.id!==id);
+    logActivity(`Removed inventory item "${esc(item.name)}"`);
+    toast('Item deleted','info');
+    renderAll();
+  });
+}
+
+/* ================= REQUESTS ================= */
+function renderRequests(){
+  const q = (document.getElementById('requests-search')?.value||'').toLowerCase();
+  const st = document.getElementById('requests-filter')?.value||'';
+  const tbody = document.getElementById('requests-tbody');
+  let rows = state.requests.filter(r => (r.name.toLowerCase().includes(q)||r.id.toLowerCase().includes(q)) && (!st || r.status===st));
+  rows = rows.slice().sort((a,b)=>b.date-a.date);
+  if(rows.length===0){
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="emoji">📄</div>No relief requests found.</div></td></tr>';
+  } else {
+    tbody.innerHTML = rows.map(r=>`
+      <tr>
+        <td style="color:var(--text-dark); font-weight:500;">${r.id}</td>
+        <td>${esc(r.name)}</td>
+        <td>${esc(r.address)}</td>
+        <td>${esc(r.type)}</td>
+        <td>${r.qty}</td>
+        <td>
+          <select class="status-select" onchange="updateRequestStatus('${r.id}', this.value)">
+            ${['Pending','Approved','Completed'].map(s=>`<option ${r.status===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </td>
+        <td>${fmtDate(r.date)}</td>
+        <td>
+          <button class="icon-btn" onclick="openRequestModal('${r.id}')" title="Edit">✏️</button>
+          <button class="icon-btn danger" onclick="deleteRequest('${r.id}')" title="Delete">🗑️</button>
+        </td>
+      </tr>`).join('');
+  }
+  document.getElementById('nav-count-requests').textContent = state.requests.filter(r=>r.status==='Pending').length;
+}
+function updateRequestStatus(id, status){
+  const r = state.requests.find(x=>x.id===id);
+  r.status = status;
+  logActivity(`Marked request ${id} (${esc(r.name)}) as ${status}`);
+  toast(`Request ${id} set to ${status}`);
+  renderAll();
+}
+function openRequestModal(id){
+  const editing = !!id;
+  const req = editing ? state.requests.find(r=>r.id===id) : { name:'', address:'', type:'Food Pack', qty:1, status:'Pending' };
+  const html = `
+    <form id="request-form">
+      <div class="form-row"><label>Requester Name</label><input required type="text" id="f-name" value="${esc(req.name)}"></div>
+      <div class="form-row"><label>Address</label><input required type="text" id="f-address" value="${esc(req.address)}"></div>
+      <div class="form-row"><label>Type of Assistance</label>
+        <select id="f-type">${['Food Pack','Drinking Water','Hygiene Kit','Clothing','First Aid Kit','Others'].map(t=>`<option ${req.type===t?'selected':''}>${t}</option>`).join('')}</select>
+      </div>
+      <div class="form-row"><label>Quantity Needed</label><input required type="number" min="1" id="f-qty" value="${req.qty}"></div>
+      <div class="form-row"><label>Status</label>
+        <select id="f-status">${['Pending','Approved','Completed'].map(s=>`<option ${req.status===s?'selected':''}>${s}</option>`).join('')}</select>
+      </div>
+      <div class="form-actions"><button type="button" class="btn-ghost" onclick="closeModal()">Cancel</button><button type="submit" class="btn-primary">${editing?'Save Changes':'Submit Request'}</button></div>
+    </form>`;
+  showModal(editing ? 'Edit Relief Request' : 'New Relief Request', html);
+  document.getElementById('request-form').onsubmit = function(e){
+    e.preventDefault();
+    const data = {
+      name: document.getElementById('f-name').value.trim(),
+      address: document.getElementById('f-address').value.trim(),
+      type: document.getElementById('f-type').value,
+      qty: parseInt(document.getElementById('f-qty').value)||1,
+      status: document.getElementById('f-status').value
+    };
+    if(editing){
+      Object.assign(req, data);
+      logActivity(`Updated request ${id}`);
+      toast('Request updated');
+    } else {
+      const nr = { id:'REQ-'+pad(nextSeq()%900+1), date:new Date(), ...data };
+      state.requests.push(nr);
+      logActivity(`New relief request ${nr.id} from "${esc(data.name)}"`);
+      toast('Request submitted');
+    }
+    closeModal(); renderAll();
+  };
+}
+function deleteRequest(id){
+  const r = state.requests.find(x=>x.id===id);
+  confirmDelete(`Delete request ${id} from ${r.name}?`, ()=>{
+    state.requests = state.requests.filter(x=>x.id!==id);
+    logActivity(`Deleted request ${id}`);
+    toast('Request deleted','info');
+    renderAll();
+  });
+}
+
+/* ================= RECIPIENTS ================= */
+function renderRecipients(){
+  const q = (document.getElementById('recipients-search')?.value||'').toLowerCase();
+  const tbody = document.getElementById('recipients-tbody');
+  let rows = state.recipients.filter(r=>r.name.toLowerCase().includes(q)||r.address.toLowerCase().includes(q));
+  if(rows.length===0){
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="emoji">👥</div>No recipients found.</div></td></tr>';
+  } else {
+    tbody.innerHTML = rows.map(r=>`
+      <tr>
+        <td style="color:var(--text-dark); font-weight:500;">${esc(r.name)}</td>
+        <td>${esc(r.address)}</td>
+        <td>${r.members}</td>
+        <td>${esc(r.contact)}</td>
+        <td>
+          <button class="icon-btn" onclick="openRecipientModal('${r.id}')" title="Edit">✏️</button>
+          <button class="icon-btn danger" onclick="deleteRecipient('${r.id}')" title="Delete">🗑️</button>
+        </td>
+      </tr>`).join('');
+  }
+  document.getElementById('nav-count-recipients').textContent = state.recipients.length;
+}
+function openRecipientModal(id){
+  const editing = !!id;
+  const rec = editing ? state.recipients.find(r=>r.id===id) : { name:'', address:'', members:1, contact:'' };
+  const html = `
+    <form id="recipient-form">
+      <div class="form-row"><label>Household Head</label><input required type="text" id="f-name" value="${esc(rec.name)}"></div>
+      <div class="form-row"><label>Address</label><input required type="text" id="f-address" value="${esc(rec.address)}"></div>
+      <div class="form-row"><label>Number of Household Members</label><input required type="number" min="1" id="f-members" value="${rec.members}"></div>
+      <div class="form-row"><label>Contact Number</label><input required type="text" id="f-contact" value="${esc(rec.contact)}" placeholder="09xx-xxx-xxxx"></div>
+      <div class="form-actions"><button type="button" class="btn-ghost" onclick="closeModal()">Cancel</button><button type="submit" class="btn-primary">${editing?'Save Changes':'Add Recipient'}</button></div>
+    </form>`;
+  showModal(editing ? 'Edit Recipient' : 'Add Recipient', html);
+  document.getElementById('recipient-form').onsubmit = function(e){
+    e.preventDefault();
+    const data = {
+      name: document.getElementById('f-name').value.trim(),
+      address: document.getElementById('f-address').value.trim(),
+      members: parseInt(document.getElementById('f-members').value)||1,
+      contact: document.getElementById('f-contact').value.trim()
+    };
+    if(editing){
+      Object.assign(rec, data);
+      logActivity(`Updated recipient record for "${esc(data.name)}"`);
+      toast('Recipient updated');
+    } else {
+      state.recipients.push({ id:'RCP-'+pad(nextSeq()%900+1), ...data });
+      logActivity(`Added new recipient "${esc(data.name)}"`);
+      toast('Recipient added');
+    }
+    closeModal(); renderAll();
+  };
+}
+function deleteRecipient(id){
+  const r = state.recipients.find(x=>x.id===id);
+  confirmDelete(`Remove recipient "${r.name}"?`, ()=>{
+    state.recipients = state.recipients.filter(x=>x.id!==id);
+    logActivity(`Removed recipient "${esc(r.name)}"`);
+    toast('Recipient removed','info');
+    renderAll();
+  });
+}
+
+/* ================= DISTRIBUTION ================= */
+function renderDistributions(){
+  const q = (document.getElementById('distribution-search')?.value||'').toLowerCase();
+  const tbody = document.getElementById('distribution-tbody');
+  let rows = state.distributions.filter(d=>d.recipient.toLowerCase().includes(q)||d.item.toLowerCase().includes(q));
+  rows = rows.slice().sort((a,b)=>b.date-a.date);
+  if(rows.length===0){
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="emoji">🚚</div>No distributions logged yet.</div></td></tr>';
+  } else {
+    tbody.innerHTML = rows.map(d=>`
+      <tr>
+        <td style="color:var(--text-dark); font-weight:500;">${d.id}</td>
+        <td>${esc(d.recipient)}</td>
+        <td>${esc(d.item)}</td>
+        <td>${d.qty}</td>
+        <td>${fmtDate(d.date)}</td>
+        <td><button class="icon-btn danger" onclick="deleteDistribution('${d.id}')" title="Delete & restock">🗑️</button></td>
+      </tr>`).join('');
+  }
+  document.getElementById('nav-count-distribution').textContent = state.distributions.length;
+  const totalQty = state.distributions.reduce((s,d)=>s+d.qty,0);
+  const uniqueRecipients = new Set(state.distributions.map(d=>d.recipient)).size;
+  const today7 = state.distributions.filter(d => (today - d.date) < 7*24*3600*1000).reduce((s,d)=>s+d.qty,0);
+  document.getElementById('distribution-stats').innerHTML = `
+    <div class="stat-box"><h4>Total Items Distributed</h4><div class="v">${totalQty}</div></div>
+    <div class="stat-box"><h4>Distribution Records</h4><div class="v">${state.distributions.length}</div></div>
+    <div class="stat-box"><h4>Unique Recipients Served</h4><div class="v">${uniqueRecipients}</div></div>
+    <div class="stat-box"><h4>Distributed, Last 7 Days</h4><div class="v">${today7}</div></div>`;
+}
+function openDistributionModal(){
+  if(state.recipients.length===0){ toast('Add a recipient first','error'); return; }
+  if(state.inventory.length===0){ toast('Add inventory items first','error'); return; }
+  const html = `
+    <form id="distribution-form">
+      <div class="form-row"><label>Recipient</label>
+        <select id="f-recipient" required>${state.recipients.map(r=>`<option value="${esc(r.name)}">${esc(r.name)} — ${esc(r.address)}</option>`).join('')}</select>
+      </div>
+      <div class="form-row"><label>Item</label>
+        <select id="f-item" required onchange="updateDistStockHint()">${state.inventory.map(i=>`<option value="${esc(i.name)}" data-stock="${i.quantity}">${esc(i.name)} (${i.quantity} ${esc(i.unit)} available)</option>`).join('')}</select>
+        <small id="dist-stock-hint"></small>
+      </div>
+      <div class="form-row"><label>Quantity</label><input required type="number" min="1" id="f-qty" value="1"></div>
+      <div class="form-actions"><button type="button" class="btn-ghost" onclick="closeModal()">Cancel</button><button type="submit" class="btn-primary">Log Distribution</button></div>
+    </form>`;
+  showModal('Log Distribution', html);
+  updateDistStockHint();
+  document.getElementById('distribution-form').onsubmit = function(e){
+    e.preventDefault();
+    const itemName = document.getElementById('f-item').value;
+    const item = state.inventory.find(i=>i.name===itemName);
+    const qty = parseInt(document.getElementById('f-qty').value)||0;
+    if(qty > item.quantity){ toast(`Only ${item.quantity} ${item.unit} of "${item.name}" available`,'error'); return; }
+    item.quantity -= qty;
+    const recipient = document.getElementById('f-recipient').value;
+    const rec = { id:'DIST-'+pad(nextSeq()%900+1), recipient, item:itemName, qty, date:new Date() };
+    state.distributions.push(rec);
+    logActivity(`Distributed ${qty} ${esc(item.unit)} of "${esc(itemName)}" to ${esc(recipient)}`);
+    toast('Distribution logged, stock updated');
+    closeModal(); renderAll();
+  };
+}
+function updateDistStockHint(){
+  const sel = document.getElementById('f-item');
+  if(!sel) return;
+  const stock = sel.options[sel.selectedIndex].getAttribute('data-stock');
+  document.getElementById('dist-stock-hint').textContent = `Available stock: ${stock}`;
+  document.getElementById('f-qty')?.setAttribute('max', stock);
+}
+function deleteDistribution(id){
+  const d = state.distributions.find(x=>x.id===id);
+  confirmDelete(`Delete distribution ${id}? This will restock ${d.qty} ${d.item} back to inventory.`, ()=>{
+    const item = state.inventory.find(i=>i.name===d.item);
+    if(item) item.quantity += d.qty;
+    state.distributions = state.distributions.filter(x=>x.id!==id);
+    logActivity(`Reversed distribution ${id}, restocked ${d.qty} ${esc(d.item)}`);
+    toast('Distribution deleted, stock restored','info');
+    renderAll();
+  });
+}
+
+/* ================= DONATIONS ================= */
+function renderDonations(){
+  const q = (document.getElementById('donations-search')?.value||'').toLowerCase();
+  const tbody = document.getElementById('donations-tbody');
+  let rows = state.donations.filter(d=>d.donor.toLowerCase().includes(q)||d.item.toLowerCase().includes(q));
+  rows = rows.slice().sort((a,b)=>b.date-a.date);
+  if(rows.length===0){
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="emoji">🎁</div>No donations logged yet.</div></td></tr>';
+  } else {
+    tbody.innerHTML = rows.map(d=>`
+      <tr>
+        <td style="color:var(--text-dark); font-weight:500;">${d.id}</td>
+        <td>${esc(d.donor)}</td>
+        <td>${esc(d.item)}</td>
+        <td>${d.qty}</td>
+        <td>${fmtDate(d.date)}</td>
+        <td><button class="icon-btn danger" onclick="deleteDonation('${d.id}')" title="Delete & remove stock">🗑️</button></td>
+      </tr>`).join('');
+  }
+  document.getElementById('nav-count-donations').textContent = state.donations.length;
+}
+function openDonationModal(){
+  const html = `
+    <form id="donation-form">
+      <div class="form-row"><label>Donor Name / Organization</label><input required type="text" id="f-donor" placeholder="e.g. SM Foundation"></div>
+      <div class="form-row"><label>Item</label>
+        <select id="f-item">
+          ${state.inventory.map(i=>`<option value="${esc(i.name)}">${esc(i.name)}</option>`).join('')}
+          <option value="__new__">＋ New item...</option>
+        </select>
+      </div>
+      <div class="form-row" id="new-item-row" style="display:none;">
+        <label>New Item Name</label><input type="text" id="f-newitem" placeholder="e.g. Instant Noodles">
+        <label style="margin-top:0.75rem;">Unit</label><input type="text" id="f-newunit" placeholder="e.g. packs">
+      </div>
+      <div class="form-row"><label>Quantity</label><input required type="number" min="1" id="f-qty" value="1"></div>
+      <div class="form-actions"><button type="button" class="btn-ghost" onclick="closeModal()">Cancel</button><button type="submit" class="btn-primary">Log Donation</button></div>
+    </form>`;
+  showModal('Log Donation', html);
+  document.getElementById('f-item').onchange = function(){
+    document.getElementById('new-item-row').style.display = this.value==='__new__' ? 'block' : 'none';
+  };
+  document.getElementById('donation-form').onsubmit = function(e){
+    e.preventDefault();
+    const donor = document.getElementById('f-donor').value.trim();
+    const qty = parseInt(document.getElementById('f-qty').value)||0;
+    let itemSel = document.getElementById('f-item').value;
+    let itemName;
+    if(itemSel==='__new__'){
+      itemName = document.getElementById('f-newitem').value.trim();
+      const unit = document.getElementById('f-newunit').value.trim() || 'pcs';
+      if(!itemName){ toast('Please name the new item','error'); return; }
+      state.inventory.push({ id:'INV-'+pad(nextSeq()%900+1), name:itemName, category:'Others', quantity:qty, unit, low:10 });
+    } else {
+      itemName = itemSel;
+      const item = state.inventory.find(i=>i.name===itemName);
+      item.quantity += qty;
+    }
+    state.donations.push({ id:'DON-'+pad(nextSeq()%900+1), donor, item:itemName, qty, date:new Date() });
+    logActivity(`Received donation of ${qty} "${esc(itemName)}" from ${esc(donor)}`);
+    toast('Donation logged, stock updated');
+    closeModal(); renderAll();
+  };
+}
+function deleteDonation(id){
+  const d = state.donations.find(x=>x.id===id);
+  confirmDelete(`Delete donation ${id}? This will remove ${d.qty} ${d.item} from inventory.`, ()=>{
+    const item = state.inventory.find(i=>i.name===d.item);
+    if(item) item.quantity = Math.max(0, item.quantity - d.qty);
+    state.donations = state.donations.filter(x=>x.id!==id);
+    logActivity(`Reversed donation ${id} from ${esc(d.donor)}`);
+    toast('Donation deleted','info');
+    renderAll();
+  });
+}
+
+/* ================= BARANGAYS ================= */
+function renderBarangays(){
+  const list = document.getElementById('barangays-list');
+  if(state.barangays.length===0){
+    list.innerHTML = '<div class="empty-state"><div class="emoji">🏛️</div>No barangays added yet.</div>';
+  } else {
+    list.innerHTML = state.barangays.map(b=>`
+      <div class="barangay-card">
+        <div class="info"><h4>${esc(b.name)}</h4><p>${esc(b.zone)} · ${esc(b.contact)} · ${esc(b.phone)}</p></div>
+        <div><button class="icon-btn" onclick="openBarangayModal('${b.id}')">✏️</button><button class="icon-btn danger" onclick="deleteBarangay('${b.id}')">🗑️</button></div>
+      </div>`).join('');
+  }
+  document.getElementById('nav-count-barangays').textContent = state.barangays.length;
+}
+function openBarangayModal(id){
+  const editing = !!id;
+  const b = editing ? state.barangays.find(x=>x.id===id) : { name:'', zone:'', contact:'', phone:'' };
+  const html = `
+    <form id="barangay-form">
+      <div class="form-row"><label>Barangay Name</label><input required type="text" id="f-name" value="${esc(b.name)}"></div>
+      <div class="form-row"><label>Zone / District</label><input required type="text" id="f-zone" value="${esc(b.zone)}"></div>
+      <div class="form-row"><label>Contact Person</label><input required type="text" id="f-contact" value="${esc(b.contact)}"></div>
+      <div class="form-row"><label>Contact Number</label><input required type="text" id="f-phone" value="${esc(b.phone)}"></div>
+      <div class="form-actions"><button type="button" class="btn-ghost" onclick="closeModal()">Cancel</button><button type="submit" class="btn-primary">${editing?'Save Changes':'Add Barangay'}</button></div>
+    </form>`;
+  showModal(editing?'Edit Barangay':'Add Barangay', html);
+  document.getElementById('barangay-form').onsubmit = function(e){
+    e.preventDefault();
+    const data = {
+      name: document.getElementById('f-name').value.trim(),
+      zone: document.getElementById('f-zone').value.trim(),
+      contact: document.getElementById('f-contact').value.trim(),
+      phone: document.getElementById('f-phone').value.trim()
+    };
+    if(editing){ Object.assign(b, data); logActivity(`Updated barangay "${esc(data.name)}"`); toast('Barangay updated'); }
+    else { state.barangays.push({ id:'BR-'+pad(nextSeq()%900+1), ...data }); logActivity(`Added barangay "${esc(data.name)}"`); toast('Barangay added'); }
+    closeModal(); renderAll();
+  };
+}
+function deleteBarangay(id){
+  const b = state.barangays.find(x=>x.id===id);
+  confirmDelete(`Remove "${b.name}" from the cluster?`, ()=>{
+    state.barangays = state.barangays.filter(x=>x.id!==id);
+    logActivity(`Removed barangay "${esc(b.name)}"`);
+    toast('Barangay removed','info');
+    renderAll();
+  });
+}
+
+/* ================= OVERVIEW ================= */
+function renderOverview(){
+  const totalGoods = state.inventory.reduce((s,i)=>s+i.quantity,0);
+  const pending = state.requests.filter(r=>r.status==='Pending').length;
+  document.getElementById('overview-stats').innerHTML = `
+    <div class="stat-box"><h4>Barangays in Cluster</h4><div class="v">${state.barangays.length}</div></div>
+    <div class="stat-box"><h4>Total Relief Goods</h4><div class="v">${totalGoods}</div></div>
+    <div class="stat-box"><h4>Pending Requests (all)</h4><div class="v">${pending}</div></div>
+    <div class="stat-box"><h4>Recipients Served</h4><div class="v">${state.recipients.length}</div></div>`;
+  document.getElementById('overview-barangay-summary').innerHTML = state.barangays.map(b=>
+    `<div style="padding:0.5rem 0; border-bottom:1px solid var(--border-color);">📍 <strong style="color:var(--text-dark);">${esc(b.name)}</strong> — ${esc(b.zone)}, coordinated by ${esc(b.contact)}</div>`
+  ).join('') || 'No barangays registered in this cluster yet.';
+}
+
+/* ================= HISTORY ================= */
+function renderHistory(){
+  const list = document.getElementById('history-list');
+  if(state.history.length===0){
+    list.innerHTML = '<div class="empty-state"><div class="emoji">🕒</div>No activity recorded yet.</div>';
+  } else {
+    list.innerHTML = state.history.map(h=>`
+      <div class="log-item"><div class="log-dot"></div><div><div class="log-text">${h.text}</div><div class="log-time">${fmtTime(h.time)}</div></div></div>
+    `).join('');
+  }
+  const historyBadge = document.getElementById('nav-count-history'); if(historyBadge) historyBadge.textContent = state.history.length;
+}
+function renderHistoryBadgeOnly(){
+  const badge = document.getElementById('nav-count-history');
+  if(badge) badge.textContent = state.history.length;
+}
+function clearHistory(){
+  confirmDelete('Clear the entire activity log?', ()=>{
+    state.history = [];
+    toast('History cleared','info');
+    renderAll();
+  });
+}
+
+/* ================= DASHBOARD ================= */
+let pieChart, lineChart;
+function renderDashboard(){
+  const totalGoods = state.inventory.reduce((s,i)=>s+i.quantity,0);
+  const availableStock = state.inventory.reduce((s,i)=> s + Math.max(0,i.quantity), 0);
+  const pendingRequests = state.requests.filter(r=>r.status==='Pending').length;
+  const totalRecipients = state.recipients.length;
+  const distributedGoods = state.distributions.reduce((s,d)=>s+d.qty,0);
+
+  document.getElementById('metrics-grid').innerHTML = `
+    <div class="metric-card"><div class="metric-icon" style="background:#e0f2fe; color:#0284c7;">📦</div><div class="metric-info"><h4>Total Relief Goods</h4><div class="value">${totalGoods.toLocaleString()}</div><p>Total items in inventory</p></div></div>
+    <div class="metric-card"><div class="metric-icon" style="background:#dcfce7; color:#16a34a;">📋</div><div class="metric-info"><h4>Available Stock</h4><div class="value">${availableStock.toLocaleString()}</div><p>Items ready for distribution</p></div></div>
+    <div class="metric-card"><div class="metric-icon" style="background:#fef3c7; color:#d97706;">📋</div><div class="metric-info"><h4>Pending Requests</h4><div class="value">${pendingRequests}</div><p>Requests for assistance</p></div></div>
+    <div class="metric-card"><div class="metric-icon" style="background:#f3e8ff; color:#9333ea;">👥</div><div class="metric-info"><h4>Total Recipients</h4><div class="value">${totalRecipients}</div><p>Individuals / Households</p></div></div>
+    <div class="metric-card"><div class="metric-icon" style="background:#ccfbf1; color:#0d9488;">🚚</div><div class="metric-info"><h4>Distributed Goods</h4><div class="value">${distributedGoods.toLocaleString()}</div><p>Items already distributed</p></div></div>
+  `;
+
+  // Recent requests / distributions (top 5)
+  const recentReq = state.requests.slice().sort((a,b)=>b.date-a.date).slice(0,5);
+  document.getElementById('dash-requests-tbody').innerHTML = recentReq.length ? recentReq.map(r=>`
+    <tr><td style="color:var(--text-dark); font-weight:500;">${r.id}</td><td>${esc(r.name)}</td><td>${esc(r.address)}</td><td>${esc(r.type)}</td><td><span class="badge badge-${r.status}">${r.status}</span></td><td>${fmtDate(r.date)}</td></tr>
+  `).join('') : '<tr><td colspan="6"><div class="empty-state">No requests yet.</div></td></tr>';
+
+  const recentDist = state.distributions.slice().sort((a,b)=>b.date-a.date).slice(0,5);
+  document.getElementById('dash-distributions-tbody').innerHTML = recentDist.length ? recentDist.map(d=>`
+    <tr><td style="color:var(--text-dark); font-weight:500;">${d.id}</td><td>${esc(d.recipient)}</td><td>${esc(d.item)}</td><td>${d.qty}</td><td>${fmtDate(d.date)}</td></tr>
+  `).join('') : '<tr><td colspan="5"><div class="empty-state">No distributions yet.</div></td></tr>';
+
+  // Pie chart: inventory by category
+  const categories = ['Food','Water','Hygiene Kit','Clothing','Medical','Others'];
+  const colors = { Food:'#3b82f6', Water:'#22c55e', 'Hygiene Kit':'#f59e0b', Clothing:'#ef4444', Medical:'#8b5cf6', Others:'#64748b' };
+  const catTotals = categories.map(c => state.inventory.filter(i=>i.category===c).reduce((s,i)=>s+i.quantity,0));
+  const grandTotal = catTotals.reduce((a,b)=>a+b,0) || 1;
+  const pieLabels = categories.map((c,idx)=> `${c} ${Math.round(catTotals[idx]/grandTotal*100)}%`);
+
+  if(!pieChart){
+    pieChart = new Chart(document.getElementById('pieChart').getContext('2d'), {
+      type:'pie',
+      data:{ labels:pieLabels, datasets:[{ data:catTotals, backgroundColor:categories.map(c=>colors[c]), borderWidth:1, borderColor:'#fff' }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ boxWidth:12, font:{size:11} } } } }
+    });
+  } else {
+    pieChart.data.labels = pieLabels;
+    pieChart.data.datasets[0].data = catTotals;
+    pieChart.update();
+  }
+  document.getElementById('pie-total').textContent = 'Total Items: ' + grandTotal.toLocaleString();
+
+  // Line chart: requests per day, last 7 days
+  const days = [...Array(7)].map((_,i)=>daysAgo(6-i));
+  const dayLabels = days.map(fmtDateShort);
+  const dayCounts = days.map(d => state.requests.filter(r => sameDay(r.date, d)).length);
+
+  if(!lineChart){
+    lineChart = new Chart(document.getElementById('lineChart').getContext('2d'), {
+      type:'line',
+      data:{ labels:dayLabels, datasets:[{ label:'Requests', data:dayCounts, borderColor:'#3b82f6', backgroundColor:'#3b82f6', tension:0.25, borderWidth:2, pointBackgroundColor:'#3b82f6', pointRadius:4 }] },
+      options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } }, x:{ grid:{ display:false } } }, plugins:{ legend:{ display:false } } }
+    });
+  } else {
+    lineChart.data.labels = dayLabels;
+    lineChart.data.datasets[0].data = dayCounts;
+    lineChart.update();
+  }
+}
+function sameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+
+
+
+/* ================= REPORTS ================= */
+const REPORT_TYPES = {
+  summary: 'Executive Summary',
+  inventory: 'Inventory Report',
+  requests: 'Relief Requests Report',
+  distribution: 'Distribution Report',
+  donations: 'Donations Report',
+  recipients: 'Recipients Report',
+  barangays: 'Barangay / Cluster Report',
+  activity: 'Activity Report'
+};
+
+const REPORT_PERIODS = {
+  all: 'All Records',
+  today: 'Today',
+  '7': 'Last 7 Days',
+  '30': 'Last 30 Days',
+  '90': 'Last 90 Days'
+};
+
+let currentReport = null;
+
+function reportPeriodStart(period){
+  const now = new Date();
+  if(period === 'all') return null;
+  const start = new Date(now);
+  if(period === 'today'){
+    start.setHours(0,0,0,0);
+  } else {
+    start.setDate(start.getDate() - Number(period));
+    start.setHours(0,0,0,0);
+  }
+  return start;
+}
+
+function dateInPeriod(value, period){
+  if(period === 'all') return true;
+  const d = new Date(value);
+  const start = reportPeriodStart(period);
+  return d >= start && d <= new Date();
+}
+
+function filteredReportData(type, period){
+  if(type === 'inventory') return state.inventory.slice();
+  if(type === 'recipients') return state.recipients.slice();
+  if(type === 'barangays') return state.barangays.slice();
+  if(type === 'requests') return state.requests.filter(r=>dateInPeriod(r.date,period));
+  if(type === 'distribution') return state.distributions.filter(d=>dateInPeriod(d.date,period));
+  if(type === 'donations') return state.donations.filter(d=>dateInPeriod(d.date,period));
+  if(type === 'activity') return state.history.filter(h=>dateInPeriod(h.time,period));
+  return null;
+}
+
+function reportKpis(type, period){
+  const inventoryQty = state.inventory.reduce((s,i)=>s + Number(i.quantity||0),0);
+  const pending = state.requests.filter(r=>r.status==='Pending').length;
+  const completed = state.requests.filter(r=>r.status==='Completed').length;
+  const distributed = state.distributions.filter(d=>dateInPeriod(d.date,period)).reduce((s,d)=>s+Number(d.qty||0),0);
+  const donated = state.donations.filter(d=>dateInPeriod(d.date,period)).reduce((s,d)=>s+Number(d.qty||0),0);
+  const low = state.inventory.filter(i=>Number(i.quantity)<=Number(i.low)).length;
+
+  return [
+    ['Inventory Stock', inventoryQty.toLocaleString()],
+    ['Pending Requests', pending.toLocaleString()],
+    ['Completed Requests', completed.toLocaleString()],
+    ['Distributed in Period', distributed.toLocaleString()],
+    ['Donated in Period', donated.toLocaleString()],
+    ['Low-Stock Items', low.toLocaleString()],
+    ['Recipients', state.recipients.length.toLocaleString()],
+    ['Barangays', state.barangays.length.toLocaleString()]
+  ].slice(0,4);
+}
+
+function reportTable(headers, rows){
+  if(!rows.length) return '<div class="report-empty">No records match the selected period.</div>';
+  return `<div class="table-wrap"><table class="report-table">
+    <thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(row=>`<tr>${row.map(cell=>`<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function buildReportHTML(type, period){
+  const title = REPORT_TYPES[type] || 'Report';
+  const periodLabel = REPORT_PERIODS[period] || 'All Records';
+  const generated = fmtTime(new Date());
+  const user = getCurrentUser();
+  const office = state.settings?.office || 'Barangay 663';
+  let body = '';
+
+  if(type === 'summary'){
+    const totalInventory = state.inventory.reduce((s,i)=>s+i.quantity,0);
+    const low = state.inventory.filter(i=>i.quantity<=i.low);
+    const pending = state.requests.filter(r=>r.status==='Pending').length;
+    const approved = state.requests.filter(r=>r.status==='Approved').length;
+    const completed = state.requests.filter(r=>r.status==='Completed').length;
+    const distributed = state.distributions.filter(d=>dateInPeriod(d.date,period)).reduce((s,d)=>s+d.qty,0);
+    const donated = state.donations.filter(d=>dateInPeriod(d.date,period)).reduce((s,d)=>s+d.qty,0);
+
+    body = `
+      <div class="report-section-title">Operational Summary</div>
+      ${reportTable(['Metric','Value'],[
+        ['Total inventory stock', totalInventory.toLocaleString()],
+        ['Pending relief requests', pending],
+        ['Approved relief requests', approved],
+        ['Completed relief requests', completed],
+        ['Items distributed', distributed.toLocaleString()],
+        ['Items donated', donated.toLocaleString()],
+        ['Registered recipients', state.recipients.length],
+        ['Barangays in cluster', state.barangays.length]
+      ])}
+      <div class="report-section-title">Low-Stock Alerts</div>
+      ${reportTable(['Item','Category','Quantity','Threshold','Status'],
+        low.map(i=>[esc(i.name),esc(i.category),i.quantity, i.low, '<span class="badge badge-low">Low Stock</span>']))}`;
+  }
+
+  if(type === 'inventory'){
+    body = reportTable(['Item','Category','Quantity','Unit','Threshold','Status'],
+      state.inventory.map(i=>[
+        esc(i.name),esc(i.category),i.quantity,esc(i.unit),i.low,
+        i.quantity<=i.low ? '<span class="badge badge-low">Low Stock</span>' : '<span class="badge badge-ok">In Stock</span>'
+      ]));
+  }
+
+  if(type === 'requests'){
+    const rows = filteredReportData(type,period).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    body = reportTable(['Request ID','Requester','Address','Type','Qty','Status','Date'],
+      rows.map(r=>[esc(r.id),esc(r.name),esc(r.address),esc(r.type),r.qty,
+        `<span class="badge badge-${esc(r.status)}">${esc(r.status)}</span>`,fmtDate(r.date)]));
+  }
+
+  if(type === 'distribution'){
+    const rows = filteredReportData(type,period).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    body = reportTable(['Distribution ID','Recipient','Item','Qty','Date'],
+      rows.map(d=>[esc(d.id),esc(d.recipient),esc(d.item),d.qty,fmtDate(d.date)]));
+  }
+
+  if(type === 'donations'){
+    const rows = filteredReportData(type,period).slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    body = reportTable(['Donation ID','Donor','Item','Qty','Date'],
+      rows.map(d=>[esc(d.id),esc(d.donor),esc(d.item),d.qty,fmtDate(d.date)]));
+  }
+
+  if(type === 'recipients'){
+    body = reportTable(['Recipient ID','Household Head','Address','Members','Contact'],
+      state.recipients.map(r=>[esc(r.id),esc(r.name),esc(r.address),r.members,esc(r.contact)]));
+  }
+
+  if(type === 'barangays'){
+    body = reportTable(['Barangay ID','Barangay','Zone / District','Contact Person','Phone'],
+      state.barangays.map(b=>[esc(b.id),esc(b.name),esc(b.zone),esc(b.contact),esc(b.phone)]));
+  }
+
+  if(type === 'activity'){
+    const rows = filteredReportData(type,period);
+    body = reportTable(['Date / Time','Activity'],
+      rows.map(h=>[fmtTime(h.time),esc(h.text)]));
+  }
+
+  return `
+    <div class="report-document" data-report-type="${esc(type)}" data-report-period="${esc(period)}">
+      <div class="report-title">${esc(state.settings?.systemName || 'Disaster Relief Resource Management System')}</div>
+      <div class="report-title" style="font-size:1.05rem;margin-top:.3rem;">${esc(title)}</div>
+      <div class="report-meta">${esc(office)} · ${esc(periodLabel)} · Generated ${esc(generated)} · By ${esc(user?.name || 'System')}</div>
+      ${body}
+      <div style="margin-top:1.5rem;font-size:.72rem;color:var(--text-muted);">
+        This report was generated from the current records in the Disaster Relief Resource Management System.
+      </div>
+    </div>`;
+}
+
+function renderReportPreview(){
+  const type = document.getElementById('report-type')?.value || 'summary';
+  const period = document.getElementById('report-period')?.value || 'all';
+  const preview = document.getElementById('report-preview');
+  const kpis = document.getElementById('report-kpis');
+  if(!preview) return;
+
+  kpis.innerHTML = reportKpis(type,period).map(k=>
+    `<div class="report-kpi"><h4>${esc(k[0])}</h4><div class="value">${esc(k[1])}</div></div>`
+  ).join('');
+
+  preview.innerHTML = buildReportHTML(type,period);
+  currentReport = {type,period,html:preview.innerHTML, generatedAt:new Date().toISOString()};
+}
+
+function generateReport(){
+  const type = document.getElementById('report-type').value;
+  const period = document.getElementById('report-period').value;
+  renderReportPreview();
+
+  const report = {
+    id:'RPT-'+String(nextSeq()).padStart(4,'0'),
+    type,
+    title:REPORT_TYPES[type],
+    period,
+    periodLabel:REPORT_PERIODS[period],
+    generatedAt:new Date().toISOString(),
+    generatedBy:getCurrentUser()?.name || 'System',
+    html:currentReport.html
+  };
+
+  if(!Array.isArray(state.reportHistory)) state.reportHistory=[];
+  state.reportHistory.unshift(report);
+  if(state.reportHistory.length > 100) state.reportHistory.pop();
+
+  logActivity(`Generated report "${report.title}" (${report.periodLabel})`);
+  toast('Report generated and saved to Report History');
+  saveAndRender();
+  showSavedReport(report.id);
+}
+
+function renderReportHistory(){
+  const tbody = document.getElementById('report-history-tbody');
+  if(!tbody) return;
+
+  const q = (document.getElementById('report-history-search')?.value || '').toLowerCase().trim();
+  const rows = (state.reportHistory || []).filter(r=>
+    !q || `${r.id} ${r.title} ${r.periodLabel} ${r.generatedBy}`.toLowerCase().includes(q)
+  );
+
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="emoji">🗂️</div>No saved reports found.</div></td></tr>';
+  } else {
+    tbody.innerHTML = rows.map(r=>`
+      <tr>
+        <td style="font-weight:600;color:var(--text-dark);">${esc(r.id)}</td>
+        <td>${esc(r.title)}</td>
+        <td>${esc(r.periodLabel)}</td>
+        <td>${esc(r.generatedBy)}</td>
+        <td>${fmtTime(new Date(r.generatedAt))}</td>
+        <td>
+          <div class="report-history-actions">
+            <button class="icon-btn" onclick="showSavedReport('${r.id}')" title="View">👁️</button>
+            <button class="icon-btn" onclick="printSavedReport('${r.id}')" title="Print">🖨️</button>
+            <button class="icon-btn" onclick="downloadSavedReportCSV('${r.id}')" title="CSV">⬇️</button>
+            <button class="icon-btn danger" onclick="deleteSavedReport('${r.id}')" title="Delete">🗑️</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  const badge = document.getElementById('nav-count-report-history');
+  if(badge) badge.textContent = (state.reportHistory || []).length;
+}
+
+function showSavedReport(id){
+  const report = (state.reportHistory || []).find(r=>r.id===id);
+  if(!report) return;
+  const box = document.getElementById('saved-report-preview');
+  if(box) box.innerHTML = report.html;
+}
+
+function deleteSavedReport(id){
+  const report = (state.reportHistory || []).find(r=>r.id===id);
+  if(!report) return;
+  confirmDelete(`Delete saved report "${report.id}"?`,()=>{
+    state.reportHistory = state.reportHistory.filter(r=>r.id!==id);
+    logActivity(`Deleted saved report "${report.id}"`);
+    toast('Saved report deleted','info');
+    saveAndRender();
+  });
+}
+
+function clearReportHistory(){
+  if(!(state.reportHistory || []).length){ toast('Report history is already empty','info'); return; }
+  confirmDelete('Clear all saved reports? This cannot be undone.',()=>{
+    state.reportHistory=[];
+    logActivity('Cleared report history');
+    toast('Report history cleared','info');
+    saveAndRender();
+  });
+}
+
+function htmlToPlainRows(report){
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = report.html;
+  const tables = [...wrapper.querySelectorAll('table')];
+  if(!tables.length) return [['Report','No tabular data']];
+  const rows=[];
+  tables.forEach(table=>{
+    [...table.rows].forEach(tr=>{
+      rows.push([...tr.cells].map(c=>c.textContent.trim()));
+    });
+    rows.push([]);
+  });
+  return rows;
+}
+
+function csvEscape(value){
+  const s=String(value??'');
+  return `"${s.replace(/"/g,'""')}"`;
+}
+
+function downloadCSV(filename, rows){
+  const csv = rows.map(row=>row.map(csvEscape).join(',')).join('\r\n');
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),500);
+}
+
+function downloadCurrentReportCSV(){
+  if(!currentReport) renderReportPreview();
+  const type=currentReport.type;
+  const period=currentReport.period;
+  const temp={html:currentReport.html};
+  downloadCSV(`brgy663-${type}-${period}-${new Date().toISOString().slice(0,10)}.csv`,htmlToPlainRows(temp));
+}
+
+function downloadSavedReportCSV(id){
+  const report=(state.reportHistory||[]).find(r=>r.id===id);
+  if(!report) return;
+  downloadCSV(`${report.id}-${report.type}-${report.period}.csv`,htmlToPlainRows(report));
+}
+
+function printHTML(title,html){
+  const w=window.open('','_blank','width=1000,height=800');
+  if(!w){ toast('Please allow pop-ups to print reports','error'); return; }
+  w.document.write(`<!doctype html><html><head><title>${esc(title)}</title>
+    <meta charset="UTF-8">
+    <style>
+      body{font-family:Arial,sans-serif;padding:30px;color:#111}
+      h1{font-size:22px;margin:0 0 5px} h2{font-size:18px;margin:0 0 5px}
+      .meta{color:#555;font-size:12px;margin-bottom:20px}
+      table{width:100%;border-collapse:collapse;margin:10px 0 20px}
+      th,td{border:1px solid #ccc;padding:7px;text-align:left;font-size:12px}
+      th{background:#f1f5f9} .badge{padding:2px 7px;border-radius:10px;font-size:10px}
+      .badge-low{background:#fee2e2;color:#b91c1c}.badge-ok{background:#dcfce7;color:#166534}
+      .badge-Pending{background:#fef3c7;color:#92400e}.badge-Approved{background:#dcfce7;color:#166534}
+      .badge-Completed{background:#dbeafe;color:#1d4ed8}
+    </style></head><body>${html}</body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>w.print(),300);
+}
+
+function printCurrentReport(){
+  if(!currentReport) renderReportPreview();
+  printHTML(REPORT_TYPES[currentReport.type],currentReport.html);
+}
+
+function printSavedReport(id){
+  const report=(state.reportHistory||[]).find(r=>r.id===id);
+  if(!report) return;
+  printHTML(report.title,report.html);
+}
+
+/* ================= USERS / SETTINGS / PERSISTENCE ================= */
+const STORAGE_KEYS = {
+  state: 'brgy663_drrms_state_v2',
+  session: 'brgy663_drrms_session_v2'
+};
+
+function getCurrentUser(){
+  return state.users.find(u => u.id === state.currentUserId) || state.users[0] || null;
+}
+
+function serializeState(){
+  const copy = JSON.parse(JSON.stringify(state));
+  return copy;
+}
+
+function saveState(){
+  try {
+    localStorage.setItem(STORAGE_KEYS.state, JSON.stringify(serializeState()));
+  } catch(err) {
+    console.error('Unable to save state:', err);
+  }
+}
+
+function reviveDates(obj){
+  if(!obj || typeof obj !== 'object') return obj;
+  const dateFields = ['date','time','lastLogin'];
+  Object.keys(obj).forEach(k=>{
+    if(dateFields.includes(k) && typeof obj[k] === 'string'){
+      const d = new Date(obj[k]);
+      if(!isNaN(d)) obj[k] = d;
+    } else if(obj[k] && typeof obj[k] === 'object'){
+      reviveDates(obj[k]);
+    }
+  });
+  return obj;
+}
+
+function loadState(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.state);
+    if(!raw) return;
+    const saved = reviveDates(JSON.parse(raw));
+    const keys = ['inventory','requests','recipients','distributions','donations','barangays','history','reportHistory','users','settings','currentUserId'];
+    keys.forEach(k=>{
+      if(saved[k] !== undefined) state[k] = saved[k];
+    });
+  } catch(err) {
+    console.warn('Saved state could not be loaded:', err);
+  }
+}
+
+function saveAndRender(){
+  saveState();
+  applySettings();
+  renderAll();
+}
+
+function applySettings(){
+  const s = state.settings || {};
+  document.title = s.systemName || 'Brgy 663 Disaster Relief Resource Management System';
+  document.documentElement.style.setProperty('--app-system-name', JSON.stringify(s.systemName || ''));
+  document.body.classList.toggle('dark', s.theme === 'dark' ||
+    (s.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches));
+  document.body.classList.toggle('compact', !!s.compactTables);
+
+  const user = getCurrentUser();
+  const name = user ? user.name : 'Admin';
+  const office = s.office || 'Barangay 663';
+  const subtitle = document.getElementById('header-subtitle');
+  if(subtitle && document.getElementById('dashboard').classList.contains('active')){
+    subtitle.textContent = `Welcome, ${name}!`;
+  }
+  const meta = document.querySelector('.user-meta span[style]');
+  if(meta) meta.textContent = `👤 ${user ? user.role : 'Administrator'} ▼`;
+}
+
+async function hashPassword(password){
+  if(!password) return '';
+  const data = new TextEncoder().encode(password);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest))
+    .map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function verifyPassword(user, password){
+  if(!user || !password) return false;
+
+  // Compatibility with the original demo accounts in your code.
+  if(user.passwordHash && user.passwordHash === password) return true;
+
+  const hashed = await hashPassword(password);
+  return user.passwordHash === hashed;
+}
+
+function renderUsers(){
+  const tbody = document.getElementById('users-tbody');
+  if(!tbody) return;
+
+  const q = (document.getElementById('users-search')?.value || '').toLowerCase().trim();
+  const role = document.getElementById('users-role-filter')?.value || '';
+
+  const rows = state.users.filter(u =>
+    (!q || `${u.name} ${u.username} ${u.role}`.toLowerCase().includes(q)) &&
+    (!role || u.role === role)
+  );
+
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="emoji">👤</div>No users found.</div></td></tr>';
+  } else {
+    tbody.innerHTML = rows.map(u=>{
+      const isMe = u.id === state.currentUserId;
+      return `<tr>
+        <td style="color:var(--text-dark);font-weight:600;">${esc(u.name)}${isMe?' <span class="badge badge-Completed">You</span>':''}</td>
+        <td>${esc(u.username)}</td>
+        <td>${esc(u.role)}</td>
+        <td><span class="badge badge-${u.status}">${u.status}</span></td>
+        <td>${u.lastLogin ? fmtTime(new Date(u.lastLogin)) : 'Never'}</td>
+        <td>
+          <button class="icon-btn" onclick="openUserModal('${u.id}')" title="Edit">✏️</button>
+          <button class="icon-btn" onclick="toggleUserStatus('${u.id}')" title="${u.status==='Active'?'Deactivate':'Activate'}">${u.status==='Active'?'⏸️':'▶️'}</button>
+          <button class="icon-btn danger" onclick="deleteUser('${u.id}')" title="Delete">🗑️</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  const active = state.users.filter(u=>u.status==='Active').length;
+  const admins = state.users.filter(u=>u.role==='Administrator' && u.status==='Active').length;
+  const current = getCurrentUser();
+  const stats = document.getElementById('user-stats');
+  if(stats) stats.innerHTML = `
+    <div class="stat-box"><h4>Total Users</h4><div class="v">${state.users.length}</div></div>
+    <div class="stat-box"><h4>Active Users</h4><div class="v">${active}</div></div>
+    <div class="stat-box"><h4>Administrators</h4><div class="v">${admins}</div></div>
+    <div class="stat-box"><h4>My Role</h4><div class="v" style="font-size:1rem;">${esc(current?.role || '—')}</div></div>`;
+  const badge = document.getElementById('nav-count-users');
+  if(badge) badge.textContent = state.users.length;
+}
+
+function openUserModal(id){
+  const editing = !!id;
+  const user = editing
+    ? state.users.find(u=>u.id===id)
+    : {name:'', username:'', role:'Relief Officer', status:'Active', lastLogin:null, passwordHash:''};
+
+  if(!user) return;
+
+  const roles = ['Administrator','Relief Officer','Inventory Officer','Viewer'];
+  const html = `
+    <form id="user-form">
+      <div class="form-row"><label>Full Name</label>
+        <input required type="text" id="user-name" value="${esc(user.name)}" placeholder="e.g. Juan Dela Cruz">
+      </div>
+      <div class="form-row"><label>Username</label>
+        <input required type="text" id="user-username" value="${esc(user.username)}" ${editing?'readonly':''} pattern="[A-Za-z0-9._-]{3,}">
+        <small>Use at least 3 letters/numbers. Username cannot be changed after account creation.</small>
+      </div>
+      <div class="form-row"><label>Role</label>
+        <select id="user-role">${roles.map(r=>`<option ${user.role===r?'selected':''}>${r}</option>`).join('')}</select>
+      </div>
+      <div class="form-row"><label>Status</label>
+        <select id="user-status"><option ${user.status==='Active'?'selected':''}>Active</option><option ${user.status==='Inactive'?'selected':''}>Inactive</option></select>
+      </div>
+      <div class="form-row"><label>${editing?'New Password':'Password'}</label>
+        <input ${editing?'':'required'} type="password" id="user-password" minlength="6" placeholder="${editing?'Leave blank to keep current password':'At least 6 characters'}">
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-ghost" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn-primary">${editing?'Save Changes':'Create User'}</button>
+      </div>
+    </form>`;
+
+  showModal(editing ? 'Edit User' : 'Add User', html);
+
+  document.getElementById('user-form').onsubmit = async function(e){
+    e.preventDefault();
+
+    const name = document.getElementById('user-name').value.trim();
+    const username = document.getElementById('user-username').value.trim();
+    const role = document.getElementById('user-role').value;
+    const status = document.getElementById('user-status').value;
+    const password = document.getElementById('user-password').value;
+
+    if(!name || !username) return;
+    if(!editing && password.length < 6){
+      toast('Password must be at least 6 characters','error'); return;
+    }
+
+    if(!editing && state.users.some(u=>u.username.toLowerCase()===username.toLowerCase())){
+      toast('That username is already in use','error'); return;
+    }
+
+    if(editing){
+      if(user.id===state.currentUserId && status==='Inactive'){
+        toast('You cannot deactivate your current account','error'); return;
+      }
+      if(user.role==='Administrator' && role!=='Administrator' &&
+         state.users.filter(u=>u.role==='Administrator' && u.status==='Active').length===1){
+        toast('At least one active Administrator is required','error'); return;
+      }
+      user.name = name;
+      user.role = role;
+      user.status = status;
+      if(password) user.passwordHash = await hashPassword(password);
+      logActivity(`Updated user account "${name}"`);
+      toast('User updated');
+    } else {
+      state.users.push({
+        id:'USR-'+String(nextSeq()).padStart(3,'0'),
+        name, username, role, status,
+        lastLogin:null,
+        passwordHash:await hashPassword(password)
+      });
+      logActivity(`Created user account "${username}"`);
+      toast('User created');
+    }
+
+    closeModal();
+    saveAndRender();
+  };
+}
+
+function toggleUserStatus(id){
+  const user = state.users.find(u=>u.id===id);
+  if(!user) return;
+
+  if(user.id===state.currentUserId){
+    toast('You cannot deactivate your current account','error'); return;
+  }
+  if(user.status==='Active' && user.role==='Administrator' &&
+     state.users.filter(u=>u.role==='Administrator' && u.status==='Active').length===1){
+    toast('At least one active Administrator is required','error'); return;
+  }
+
+  user.status = user.status==='Active' ? 'Inactive' : 'Active';
+  logActivity(`${user.status==='Active'?'Activated':'Deactivated'} user "${user.username}"`);
+  toast(`User ${user.status.toLowerCase()}`);
+  saveAndRender();
+}
+
+function deleteUser(id){
+  const user = state.users.find(u=>u.id===id);
+  if(!user) return;
+  if(user.id===state.currentUserId){
+    toast('You cannot delete your current account','error'); return;
+  }
+  if(user.role==='Administrator' &&
+     state.users.filter(u=>u.role==='Administrator' && u.status==='Active').length===1){
+    toast('The last active Administrator cannot be deleted','error'); return;
+  }
+
+  confirmDelete(`Delete user "${user.username}"? This cannot be undone.`, ()=>{
+    state.users = state.users.filter(u=>u.id!==id);
+    logActivity(`Deleted user account "${user.username}"`);
+    toast('User deleted','info');
+    saveAndRender();
+  });
+}
+
+function renderSettings(){
+  const s = state.settings || {};
+  const user = getCurrentUser();
+
+  const fields = {
+    'setting-system-name':s.systemName || '',
+    'setting-office':s.office || '',
+    'setting-cluster':s.cluster || '',
+    'setting-theme':s.theme || 'light',
+    'setting-compact':!!s.compactTables,
+    'setting-profile-name':user?.name || '',
+    'setting-profile-username':user?.username || '',
+    'setting-profile-role':user?.role || ''
+  };
+
+  Object.entries(fields).forEach(([id,val])=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(el.type==='checkbox') el.checked = val;
+    else el.value = val;
+  });
+}
+
+function setupSettingsForms(){
+  const sf = document.getElementById('system-settings-form');
+  if(sf && !sf.dataset.ready){
+    sf.dataset.ready='1';
+    sf.onsubmit = e=>{
+      e.preventDefault();
+      state.settings.systemName = document.getElementById('setting-system-name').value.trim();
+      state.settings.office = document.getElementById('setting-office').value.trim();
+      state.settings.cluster = document.getElementById('setting-cluster').value.trim();
+      state.settings.theme = document.getElementById('setting-theme').value;
+      state.settings.compactTables = document.getElementById('setting-compact').checked;
+      logActivity('Updated system settings');
+      toast('System settings saved');
+      saveAndRender();
+    };
+  }
+
+  const pf = document.getElementById('profile-settings-form');
+  if(pf && !pf.dataset.ready){
+    pf.dataset.ready='1';
+    pf.onsubmit = e=>{
+      e.preventDefault();
+      const user = getCurrentUser();
+      if(!user) return;
+
+      const name = document.getElementById('setting-profile-name').value.trim();
+      const password = document.getElementById('setting-profile-password').value;
+      if(!name){ toast('Name cannot be empty','error'); return; }
+
+      user.name = name;
+      if(password && password.length < 6){
+        toast('Password must be at least 6 characters','error'); return;
+      }
+      if(password) user.passwordHash = hashPassword(password);
+
+      document.getElementById('setting-profile-password').value='';
+      logActivity(`Updated profile for "${user.username}"`);
+      toast('Profile saved');
+      saveAndRender();
+    };
+  }
+}
+
+function exportSystemData(){
+  const payload = {
+    exportedAt:new Date().toISOString(),
+    version:2,
+    state:serializeState()
+  };
+  const blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `brgy663-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),500);
+  logActivity('Exported a JSON system backup');
+  toast('Backup exported');
+}
+
+function importSystemData(){
+  const input = document.createElement('input');
+  input.type='file'; input.accept='.json,application/json';
+  input.onchange = ()=>{
+    const file = input.files?.[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{
+        const payload = JSON.parse(reader.result);
+        const imported = payload.state || payload;
+        if(!imported || !Array.isArray(imported.inventory) || !Array.isArray(imported.users)){
+          throw new Error('Invalid backup format');
+        }
+        if(!confirm('Import this backup? Current browser data will be replaced.')) return;
+        ['inventory','requests','recipients','distributions','donations','barangays','history','reportHistory','users','settings','currentUserId']
+          .forEach(k=>{ if(imported[k]!==undefined) state[k]=reviveDates(imported[k]); });
+        if(!state.users.some(u=>u.id===state.currentUserId)) state.currentUserId=state.users[0]?.id;
+        logActivity('Imported a JSON system backup');
+        toast('Backup imported');
+        saveAndRender();
+      }catch(err){
+        toast('Invalid or unreadable backup file','error');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function resetSystemData(){
+  if(!confirm('Reset ALL local data to the original demo data? This will erase your current changes.')) return;
+  localStorage.removeItem(STORAGE_KEYS.state);
+  location.reload();
+}
+
+
+/* ================= RENDER ALL ================= */
+function renderAll(){
+  renderDashboard();
+  renderInventory();
+  renderRequests();
+  renderRecipients();
+  renderDistributions();
+  renderDonations();
+  renderBarangays();
+  renderOverview();
+  renderHistory();
+  renderReportHistory();
+  renderUsers();
+  renderSettings();
+  setupSettingsForms();
+  renderReportPreview();
+  applySettings();
+}
+
+async function requireLogin(){
+  loadState();
+
+  const sessionUserId = localStorage.getItem(STORAGE_KEYS.session);
+  const sessionUser = state.users.find(u => u.id === sessionUserId);
+
+  if(!sessionUser || sessionUser.status !== 'Active'){
+    localStorage.removeItem(STORAGE_KEYS.session);
+    window.location.replace('login.html');
+    return false;
+  }
+
+  state.currentUserId = sessionUser.id;
+  document.body.classList.remove('auth-locked');
+
+  document.getElementById('header-date').textContent =
+    '📅 ' + today.toLocaleDateString('en-US',{
+      month:'long', day:'numeric', year:'numeric', weekday:'long'
+    });
+
+  applySettings();
+  renderAll();
+  return true;
+}
+
+requireLogin();
+</script>
+</body>
+</html>
